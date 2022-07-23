@@ -26,7 +26,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
 
     def get_tokenizer(self) -> AutoTokenizer:
-        return AutoTokenizer.from_pretrained(self.encoder)
+        return AutoTokenizer.from_pretrained(self.encoder_name)
 
     def forward(self,
                 input_ids: Optional[torch.Tensor] = None,
