@@ -1,8 +1,8 @@
-import base
 from base import *
 from dataclasses import dataclass
 from typing import Optional, Tuple
 from transformers import AutoModel, AutoTokenizer, AutoConfig
+from torch.nn import CrossEntropyLoss
 from collections import OrderedDict
 
 
@@ -32,6 +32,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                 input_ids: Optional[torch.Tensor] = None,
                 input_mask: Optional[torch.Tensor] = None,
                 external_states: Optional[torch.Tensor] = None,
+                labels: Optional[torch.Tensor] = None,
                 **kwargs):
 
         # simple check
@@ -51,13 +52,21 @@ class DiscriminatorForTokenClassification(BaseModel):
         sequence_output_drop = self.dropout(sequence_output)
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
-        return TokenClassifierOutput(logits=logits,
+
+        loss = None
+        if labels is not None:
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+
+        return TokenClassifierOutput(loss=loss,
+                                     logits=logits,
                                      probs=probs,
                                      hidden_states=sequence_output)
 
 
 @dataclass
 class TokenClassifierOutput(OrderedDict):
+    loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     probs: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
