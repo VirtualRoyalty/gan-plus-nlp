@@ -15,7 +15,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                  dropout_rate: Optional[float] = 0.1,
                  **kwargs):
         super(DiscriminatorForTokenClassification, self).__init__()
-
+        self.encoder_name = encoder_name
         self.encoder = AutoModel.from_pretrained(encoder_name)
         classifier_dropout = (
             self.encoder.classifier_dropout
