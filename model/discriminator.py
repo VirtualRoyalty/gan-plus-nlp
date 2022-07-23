@@ -2,7 +2,7 @@ import base
 from base import *
 from dataclasses import dataclass
 from typing import Optional, Tuple
-from transformers import AutoModel
+from transformers import AutoModel, AutoTokenizer, AutoConfig
 from collections import OrderedDict
 
 
@@ -18,11 +18,15 @@ class DiscriminatorForTokenClassification(BaseModel):
 
         self.encoder = AutoModel.from_pretrained(encoder_name)
         classifier_dropout = (
-            self.encoder.classifier_dropout if self.encoder.config.classifier_dropout is not None
+            self.encoder.classifier_dropout
+            if hasattr(self.encoder.config, "classifier_dropout") is not None
             else dropout_rate
         )
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
+
+    def get_tokenizer(self) -> AutoTokenizer:
+        return AutoTokenizer.from_pretrained(self.encoder)
 
     def forward(self,
                 input_ids: Optional[torch.Tensor] = None,
