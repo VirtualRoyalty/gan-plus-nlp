@@ -1,4 +1,5 @@
 numpy
 torch
 transformers>=4.3.2
+datasets
 tqdm
