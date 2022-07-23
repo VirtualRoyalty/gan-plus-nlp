@@ -19,7 +19,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         self.encoder = AutoModel.from_pretrained(encoder_name)
         classifier_dropout = (
             self.encoder.classifier_dropout
-            if hasattr(self.encoder.config, "classifier_dropout") is not None
+            if hasattr(self.encoder.config, "classifier_dropout")
             else dropout_rate
         )
         self.dropout = nn.Dropout(classifier_dropout)
