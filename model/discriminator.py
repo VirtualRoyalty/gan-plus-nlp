@@ -18,7 +18,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         self.encoder_name = encoder_name
         self.encoder = AutoModel.from_pretrained(encoder_name)
         classifier_dropout = (
-            self.encoder.classifier_dropout
+            self.encoder.config.classifier_dropout
             if hasattr(self.encoder.config, "classifier_dropout")
             else dropout_rate
         )
