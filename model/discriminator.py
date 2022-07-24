@@ -12,7 +12,7 @@ class DiscriminatorForTokenClassification(BaseModel):
     def __init__(self,
                  encoder_name: str,
                  num_labels: int = 10,
-                 dropout_rate: Optional[float] = 0.1,
+                 dropout_rate: Optional[float] = 0.15,
                  **kwargs):
         super(DiscriminatorForTokenClassification, self).__init__()
         self.encoder_name = encoder_name
@@ -20,9 +20,11 @@ class DiscriminatorForTokenClassification(BaseModel):
         classifier_dropout = (
             self.encoder.config.classifier_dropout
             if hasattr(self.encoder.config, "classifier_dropout")
-            else dropout_rate
+            else None
         )
-        self.dropout = nn.Dropout(classifier_dropout)
+        self.dropout = nn.Dropout(dropout_rate
+                                  if classifier_dropout is None
+                                  else classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
 
     def get_tokenizer(self) -> AutoTokenizer:
