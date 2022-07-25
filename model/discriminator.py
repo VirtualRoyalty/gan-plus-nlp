@@ -68,7 +68,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                                      hidden_states=sequence_output)
 
 
-@dataclass
+@dataclass(repr=True)
 class TokenClassifierOutput(OrderedDict):
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
