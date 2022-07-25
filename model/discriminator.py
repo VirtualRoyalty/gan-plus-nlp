@@ -26,6 +26,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                                   if classifier_dropout is None
                                   else classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
+        self.softmax = nn.Softmax(dim=-1)
 
     def get_tokenizer(self) -> AutoTokenizer:
         return AutoTokenizer.from_pretrained(self.encoder_name)
