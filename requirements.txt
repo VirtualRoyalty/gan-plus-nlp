@@ -1,5 +1,6 @@
 numpy
 torch
-transformers>=4.3.2
+transformers
 datasets
+seqeval
 tqdm
