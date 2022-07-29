@@ -7,7 +7,7 @@ plt.ioff()
 matplotlib.use('Agg')
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, classification_report
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Mapping, Union, Any
 import torch.nn.functional as F
 from transformers import AutoModel, get_constant_schedule_with_warmup
 
@@ -45,16 +45,18 @@ class TrainerTokenClassification:
         # log config
         self.config = config
 
+        # move model to device
+        self.D.to(self.device)
+
     def train_epoch(self, log_env=None) -> float:
         tr_d_loss = 0
         self.D.train()
 
         for step, batch in enumerate(self.train_dataloader):
-
-            output = self.D(input_ids=batch['input_ids'],
+            batch = self._prepare_inputs(batch)
+            output = self.D(input_ids=batch['input_ids'].to(self.device),
                             input_mask=batch['attention_mask'],
                             labels=batch['labels'])
-
             if log_env:
                 log_env['train/discriminator_loss'].log(output.loss.item())
 
@@ -65,6 +67,17 @@ class TrainerTokenClassification:
             if self.config['apply_scheduler']:
                 self.scheduler.step()
         return tr_d_loss
+
+    def _prepare_inputs(self, data: Union[torch.Tensor, Any]) -> Union[torch.Tensor, Any]:
+        if isinstance(data, Mapping):
+            return type(data)({k: self._prepare_input(v) for k, v in data.items()})
+        elif isinstance(data, (tuple, list)):
+            return type(data)(self._prepare_input(v) for v in data)
+        elif isinstance(data, torch.Tensor):
+            kwargs = dict(device=self.device)
+            return data.to(**kwargs)
+        return data
+
 
     @torch.no_grad()
     def validation(self, tr_d_loss, epoch_i, verbose=True, log_env=None, *args, **kwargs):
