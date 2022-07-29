@@ -70,9 +70,9 @@ class TrainerTokenClassification:
 
     def _prepare_inputs(self, data: Union[torch.Tensor, Any]) -> Union[torch.Tensor, Any]:
         if isinstance(data, Mapping):
-            return type(data)({k: self._prepare_input(v) for k, v in data.items()})
+            return type(data)({k: self._prepare_inputs(v) for k, v in data.items()})
         elif isinstance(data, (tuple, list)):
-            return type(data)(self._prepare_input(v) for v in data)
+            return type(data)(self._prepare_inputs(v) for v in data)
         elif isinstance(data, torch.Tensor):
             kwargs = dict(device=self.device)
             return data.to(**kwargs)
