@@ -15,11 +15,11 @@ def compute_metrics(predictions: torch.Tensor,
     predictions = np.argmax(predictions, axis=2)
 
     true_predictions = [
-        [label_names[pred] for (pred, _label) in zip(prediction, _label) if _label != -100]
+        [label_names[pred] for (pred, lbl) in zip(prediction, label) if _label != -100]
         for prediction, label in zip(predictions, labels)
     ]
     true_labels = [
-        [label_names[_label] for (pred, _label) in zip(prediction, _label) if _label != -100]
+        [label_names[lbl] for (pred, lbl) in zip(prediction, label) if _label != -100]
         for prediction, label in zip(predictions, labels)
     ]
     results = metric.compute(predictions=true_predictions, references=true_labels)
