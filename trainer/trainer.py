@@ -62,7 +62,6 @@ class TrainerTokenClassification:
     @torch.no_grad()
     def validation(self,
                    train_loss: float,
-                   epoch_i: int,
                    verbose: Optional[bool] = True,
                    log_env: Optional[Dict] = None,
                    **kwargs
@@ -84,7 +83,7 @@ class TrainerTokenClassification:
             print(f"\tTrain loss discriminator: {train_loss / len(self.train_dataloader):.3f}")
             print(f"  Test loss discriminator: {result_metrics['loss']:.3f}")
             print(f"  Test accuracy discriminator: {result_metrics['overall_accuracy']:.3f}")
-            print(f"  Test accuracy discriminator: {result_metrics['overall_f1']:.3f}")
+            print(f"  Test f1 discriminator: {result_metrics['overall_f1']:.3f}")
         return result_metrics
 
     def predict(self,
@@ -122,6 +121,7 @@ class TrainerTokenClassification:
         return data
 
     def _define_scheduler(self):
+
         _default_scheduler = get_constant_schedule_with_warmup
         train_size = self.config['num_train_examples']
         batch_size = self.config['batch_size']
