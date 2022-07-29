@@ -78,6 +78,7 @@ class TrainerTokenClassification:
             log_env['valid/f1'].log(result_metrics['overall_f1'])
             log_env['valid/precision'].log(result_metrics['overall_precision'])
             log_env['valid/recall'].log(result_metrics['overall_recall'])
+            log_env['valid/detailed_metrics'].log(result_metrics)
 
         if verbose:
             print(f"\tTrain loss discriminator: {train_loss / len(self.train_dataloader):.3f}")
