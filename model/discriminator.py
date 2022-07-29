@@ -1,10 +1,10 @@
 from base import *
-from dataclasses import dataclass
 from typing import Optional, Tuple
-from collections import OrderedDict
 
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModel, AutoTokenizer, AutoConfig
+
+from model.utils import TokenClassifierOutput
 
 
 class DiscriminatorForTokenClassification(BaseModel):
@@ -14,7 +14,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                  encoder_name: str,
                  num_labels: int = 10,
                  dropout_rate: Optional[float] = 0.15,
-                 ignore_index: Optional[int] = -100,
+                 ce_ignore_index: Optional[int] = -100,
                  **kwargs):
         super(DiscriminatorForTokenClassification, self).__init__()
         self.num_labels = num_labels
@@ -30,7 +30,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                                   else classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
         self.softmax = nn.Softmax(dim=-1)
-        self.ignore_index = ignore_index
+        self.ignore_index = ce_ignore_index
         self.loss_fct = CrossEntropyLoss(ignore_index=self.ignore_index)
 
     def get_tokenizer(self) -> AutoTokenizer:
@@ -41,7 +41,8 @@ class DiscriminatorForTokenClassification(BaseModel):
                 input_mask: Optional[torch.Tensor] = None,
                 external_states: Optional[torch.Tensor] = None,
                 labels: Optional[torch.Tensor] = None,
-                **kwargs):
+                **kwargs
+                ) -> TokenClassifierOutput:
 
         # simple check
         if input_ids is None and external_states is None:
@@ -73,19 +74,3 @@ class DiscriminatorForTokenClassification(BaseModel):
     def freeze_backbone(self) -> None:
         for name, parameter in self.encoder.named_parameters():
             parameter.requires_grad = False
-
-
-@dataclass()
-class TokenClassifierOutput(OrderedDict):
-    loss: Optional[torch.FloatTensor] = None
-    logits: torch.FloatTensor = None
-    probs: torch.FloatTensor = None
-    hidden_states: Optional[Tuple[torch.FloatTensor]] = None
-
-    def __repr__(self):
-        kws = [f"{key}={type(value).__name__}"
-               for key, value in self.__dict__.items()]
-        return f"{type(self).__name__}({', '.join(kws)})"
-
-    def __str__(self):
-        return self.__repr__()
