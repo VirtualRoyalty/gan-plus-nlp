@@ -45,7 +45,7 @@ class TrainerTokenClassification:
 
         for step, batch in enumerate(self.train_dataloader):
             batch = self._prepare_inputs(batch)
-            output = self.model(input_ids=batch['input_ids'].to(self.device),
+            output = self.model(input_ids=batch['input_ids'],
                                 input_mask=batch['attention_mask'],
                                 labels=batch['labels'])
             if log_env:
@@ -81,11 +81,12 @@ class TrainerTokenClassification:
 
         if verbose:
             print(f"\tTrain loss discriminator: {train_loss / len(self.train_dataloader):.3f}")
-            print(f"  Test loss discriminator: {result_metrics['loss']:.3f}")
-            print(f"  Test accuracy discriminator: {result_metrics['overall_accuracy']:.3f}")
-            print(f"  Test f1 discriminator: {result_metrics['overall_f1']:.3f}")
+            print(f"\tTest loss discriminator: {result_metrics['loss']:.3f}")
+            print(f"\tTest accuracy discriminator: {result_metrics['overall_accuracy']:.3f}")
+            print(f"\tTest f1 discriminator: {result_metrics['overall_f1']:.3f}")
         return result_metrics
 
+    @torch.no_grad()
     def predict(self,
                 model: nn.Module,
                 data_loader: torch.utils.data.DataLoader,
@@ -96,7 +97,7 @@ class TrainerTokenClassification:
         model.eval()
         for step, batch in enumerate(data_loader):
             batch = self._prepare_inputs(batch)
-            output = model(input_ids=batch['input_ids'].to(self.device),
+            output = model(input_ids=batch['input_ids'],
                            input_mask=batch['attention_mask'],
                            labels=batch['labels'])
             predictions.append(output.logits.cpu().detach().numpy())
