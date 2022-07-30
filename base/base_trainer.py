@@ -1,115 +1,77 @@
 import torch
-from abc import abstractmethod
-from numpy import inf
-# from logger import TensorboardWriter
+from abc import ABC, abstractmethod
+from typing import Dict, Tuple, Mapping, Union, Any, Optional
 
 
-class BaseTrainer:
+class BaseTrainer(ABC):
     """
     Base class for all trainers
     """
 
+    def train_epoch(self, log_env: Optional[Dict] = None) -> float:
+        total_loss = 0
+        self.model.train()
+        for step, batch in enumerate(self.train_dataloader):
+            loss = self.training_step(batch, log_env)
+            total_loss += loss
+        return total_loss / len(self.train_dataloader)
+
     @abstractmethod
-    def train_epoch(self, epoch):
+    def training_step(self):
         """
-        Training logic for an epoch
-
-        :param epoch: Current epoch number
+        Training step logic
         """
-        raise NotImplementedError
+        return NotImplementedError
 
-    def train(self):
+    @torch.no_grad()
+    def validation(self,
+                   train_loss: float,
+                   verbose: Optional[bool] = True,
+                   log_env: Optional[Dict] = None,
+                   **kwargs
+                   ) -> Dict:
+
+        result_metrics = self.predict(model=self.model,
+                                      data_loader=self.valid_dataloader,
+                                      label_names=self.config['label_names'])
+        self._valid_logging(log_env, info=result_metrics)
+
+        if verbose:
+            print(f"\tTrain loss discriminator: {train_loss:.3f}")
+            print(f"\tTest loss discriminator: {result_metrics['loss']:.3f}")
+            print(f"\tTest accuracy discriminator: {result_metrics['overall_accuracy']:.3f}")
+            print(f"\tTest f1 discriminator: {result_metrics['overall_f1']:.3f}")
+        return result_metrics
+
+    @abstractmethod
+    def predict(self):
         """
-        Full training logic
+        Training step logic
         """
-        not_improved_count = 0
-        for epoch in range(self.start_epoch, self.epochs + 1):
-            result = self.train_epoch(epoch)
+        return NotImplementedError
 
-            # save logged informations into log dict
-            log = {'epoch': epoch}
-            log.update(result)
-
-            # print logged informations to the screen
-            for key, value in log.items():
-                self.logger.info('    {:15s}: {}'.format(str(key), value))
-
-            # evaluate model performance according to configured metric, save best checkpoint as model_best
-            best = False
-            if self.mnt_mode != 'off':
-                try:
-                    # check whether model performance improved or not, according to specified metric(mnt_metric)
-                    improved = (self.mnt_mode == 'min' and log[self.mnt_metric] <= self.mnt_best) or \
-                               (self.mnt_mode == 'max' and log[self.mnt_metric] >= self.mnt_best)
-                except KeyError:
-                    self.logger.warning("Warning: Metric '{}' is not found. "
-                                        "Model performance monitoring is disabled.".format(self.mnt_metric))
-                    self.mnt_mode = 'off'
-                    improved = False
-
-                if improved:
-                    self.mnt_best = log[self.mnt_metric]
-                    not_improved_count = 0
-                    best = True
-                else:
-                    not_improved_count += 1
-
-                if not_improved_count > self.early_stop:
-                    self.logger.info("Validation performance didn\'t improve for {} epochs. "
-                                     "Training stops.".format(self.early_stop))
-                    break
-
-            if epoch % self.save_period == 0:
-                self._save_checkpoint(epoch, save_best=best)
-
-    def _save_checkpoint(self, epoch, save_best=False):
+    @abstractmethod
+    def _train_logging(self):
         """
-        Saving checkpoints
-
-        :param epoch: current epoch number
-        :param log: logging information of the epoch
-        :param save_best: if True, rename the saved checkpoint to 'model_best.pth'
+        Training step logic
         """
-        arch = type(self.model).__name__
-        state = {
-            'arch': arch,
-            'epoch': epoch,
-            'state_dict': self.model.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
-            'monitor_best': self.mnt_best,
-            'config': self.config
-        }
-        filename = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch))
-        torch.save(state, filename)
-        self.logger.info("Saving checkpoint: {} ...".format(filename))
-        if save_best:
-            best_path = str(self.checkpoint_dir / 'model_best.pth')
-            torch.save(state, best_path)
-            self.logger.info("Saving current best: model_best.pth ...")
+        return NotImplementedError
 
-    def _resume_checkpoint(self, resume_path):
+    @abstractmethod
+    def _valid_logging(self):
         """
-        Resume from saved checkpoints
-
-        :param resume_path: Checkpoint path to be resumed
+        Training step logic
         """
-        resume_path = str(resume_path)
-        self.logger.info("Loading checkpoint: {} ...".format(resume_path))
-        checkpoint = torch.load(resume_path)
-        self.start_epoch = checkpoint['epoch'] + 1
-        self.mnt_best = checkpoint['monitor_best']
+        return NotImplementedError
 
-        # load architecture params from checkpoint.
-        if checkpoint['config']['arch'] != self.config['arch']:
-            self.logger.warning("Warning: Architecture configuration given in config file is different from that of "
-                                "checkpoint. This may yield an exception while state_dict is being loaded.")
-        self.model.load_state_dict(checkpoint['state_dict'])
-
-        # load optimizer state from checkpoint only when optimizer type is not changed.
-        if checkpoint['config']['optimizer']['type'] != self.config['optimizer']['type']:
-            self.logger.warning("Warning: Optimizer type given in config file is different from that of checkpoint. "
-                                "Optimizer parameters not being resumed.")
-        else:
-            self.optimizer.load_state_dict(checkpoint['optimizer'])
-
-        self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
+    def _prepare_inputs(self,
+                        data: Union[torch.Tensor, Any]
+                        ) -> Union[torch.Tensor, Any]:
+        if isinstance(data, Mapping):
+            return type(data)({k: self._prepare_inputs(v) for k, v in data.items()})
+        elif isinstance(data, (tuple, list)):
+            return type(data)(self._prepare_inputs(v) for v in data)
+        elif isinstance(data, torch.Tensor):
+            kwargs = dict(device=self.device)
+            return data.to(**kwargs)
+        return data
