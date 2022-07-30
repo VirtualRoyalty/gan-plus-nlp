@@ -36,7 +36,7 @@ class TrainerTokenClassification(BaseTrainer):
         output = self.model(input_ids=batch['input_ids'],
                             input_mask=batch['attention_mask'],
                             labels=batch['labels'])
-        self._train_log_to_env(log_env, output=output)
+        self._train_logging(log_env, output=output)
 
         self.optimizer.zero_grad()
         output.loss.backward()
