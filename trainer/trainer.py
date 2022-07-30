@@ -29,7 +29,9 @@ class TrainerTokenClassification(BaseTrainer):
         self._define_scheduler()
         self.model.to(self.device)
 
-    def training_step(self, batch: Dict[torch.Tensor], log_env: Optional[Dict] = None):
+    def training_step(self,
+                      batch: Mapping[str, torch.Tensor],
+                      log_env: Optional[Dict] = None):
         batch = self._prepare_inputs(batch)
         output = self.model(input_ids=batch['input_ids'],
                             input_mask=batch['attention_mask'],
@@ -67,7 +69,7 @@ class TrainerTokenClassification(BaseTrainer):
         return result
 
     @staticmethod
-    def _train_logging(log_env: Optional[Dict] = None,
+    def _train_logging(log_env: Optional[Mapping] = None,
                        info: Optional[Mapping] = None,
                        output: Optional[TokenClassifierOutput] = None,
                        **kwargs):
@@ -76,7 +78,7 @@ class TrainerTokenClassification(BaseTrainer):
         return
 
     @staticmethod
-    def _valid_logging(log_env: Optional[Dict] = None,
+    def _valid_logging(log_env: Optional[Mapping] = None,
                        info: Optional[Mapping] = None,
                        output: Optional[TokenClassifierOutput] = None,
                        **kwargs):
