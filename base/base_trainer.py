@@ -46,21 +46,21 @@ class BaseTrainer(ABC):
     @abstractmethod
     def predict(self):
         """
-        Training step logic
+        Model predict logic
         """
         return NotImplementedError
 
     @abstractmethod
     def _train_logging(self):
         """
-        Training step logic
+        Logging logic on training stage
         """
         return NotImplementedError
 
     @abstractmethod
     def _valid_logging(self):
         """
-        Training step logic
+        Logging logic on validation stage
         """
         return NotImplementedError
 
