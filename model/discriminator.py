@@ -87,6 +87,8 @@ class DiscriminatorForTokenClassification(BaseModel):
         if labels is not None:
             if self.fake_label_index is not None:
                 _logits = logits[:, self.real_labels]
+            else:
+                _logits = logits
             loss = self.loss_fct(_logits.view(-1, self.num_labels), labels.view(-1))
         elif only_unsupervised:
             loss = - torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
