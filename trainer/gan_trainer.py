@@ -55,7 +55,7 @@ class GANTrainerTokenClassification(BaseTrainer):
         feat_sim_loss = torch.mean(
             torch.pow(torch.mean(output.hidden_states, dim=0) - torch.mean(fake_output.hidden_states, dim=0), 2)
         )
-        generator_loss = cheat_loss + feat_sim_loss
+        generator_loss = output.loss + cheat_loss + feat_sim_loss
 
         # Discriminator loss estimation
         unsup_fake_loss = fake_output.loss
