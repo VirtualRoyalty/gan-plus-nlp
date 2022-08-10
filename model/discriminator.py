@@ -82,8 +82,7 @@ class DiscriminatorForTokenClassification(BaseModel):
     def compute_loss(self,
                      logits: torch.Tensor,
                      labels: Optional[torch.Tensor] = None,
-                     probs: Optional[torch.Tensor] = None
-                     ) -> Optional[torch.float]:
+                     probs: Optional[torch.Tensor] = None):
         loss = None
         if labels is not None:
             if self.fake_label_index is not None:
