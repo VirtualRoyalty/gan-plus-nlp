@@ -95,7 +95,7 @@ class TrainerTokenClassification(BaseTrainer):
             self.model.freeze_backbone()
         m_vars = [p for p in self.model.parameters() if p.requires_grad]
         print(f'Trainable layers {len(m_vars)}')
-        self.optimizer = AdamW(m_vars, lr=self.config['learning_rate_discriminator'])
+        self.optimizer = AdamW(m_vars, lr=self.config['lr_discriminator'])
 
     def _define_scheduler(self):
         _default_scheduler = get_constant_schedule_with_warmup
