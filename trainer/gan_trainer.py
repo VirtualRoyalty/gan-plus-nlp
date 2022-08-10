@@ -32,6 +32,7 @@ class GANTrainerTokenClassification(BaseTrainer):
         self._define_optimizer()
         self._define_scheduler()
         self.model.to(self.device)
+        self.generator.to(self.device)
 
     def training_step(self,
                       batch: Mapping[str, torch.Tensor],
