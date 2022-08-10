@@ -147,5 +147,5 @@ class GANTrainerTokenClassification(BaseTrainer):
             # generator scheduler
             self.config['num_warmup_steps_g'] = int(self.config['num_train_steps'] *
                                                     self.config['warmup_proportion_g'])
-            self.generator_schedule = _default_scheduler(self.generator_optimizer,
-                                                         num_warmup_steps=self.config['num_warmup_steps_g'])
+            self.generator_scheduler = _default_scheduler(self.generator_optimizer,
+                                                          num_warmup_steps=self.config['num_warmup_steps_g'])
