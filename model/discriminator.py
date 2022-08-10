@@ -1,3 +1,5 @@
+import torch
+
 from base import *
 from typing import Optional, Tuple
 
@@ -15,6 +17,8 @@ class DiscriminatorForTokenClassification(BaseModel):
                  num_labels: int = 10,
                  dropout_rate: Optional[float] = 0.15,
                  ce_ignore_index: Optional[int] = -100,
+                 epsilon: Optional[float] = 1e-8,
+                 fake_label_index: Optional[int] = None,
                  **kwargs):
         super(DiscriminatorForTokenClassification, self).__init__()
         self.num_labels = num_labels
@@ -32,6 +36,11 @@ class DiscriminatorForTokenClassification(BaseModel):
         self.softmax = nn.Softmax(dim=-1)
         self.ignore_index = ce_ignore_index
         self.loss_fct = CrossEntropyLoss(ignore_index=self.ignore_index)
+        self.epsilon = epsilon
+        self.fake_label_index = fake_label_index
+        if self.fake_label_index is not None:
+            fake_index = fake_label_index if fake_label_index >= 0 else num_labels - fake_label_index
+            self.real_labels = torch.arange(num_labels) != fake_index
 
     def get_tokenizer(self) -> AutoTokenizer:
         return AutoTokenizer.from_pretrained(self.encoder_name)
@@ -62,14 +71,26 @@ class DiscriminatorForTokenClassification(BaseModel):
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
 
-        loss = None
-        if labels is not None:
-            loss = self.loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        loss = self.compute_loss(logits=logits, probs=probs, labels=labels, )
 
         return TokenClassifierOutput(loss=loss,
                                      logits=logits,
                                      probs=probs,
                                      hidden_states=sequence_output)
+
+    def compute_loss(self,
+                     logits: torch.Tensor,
+                     labels: Optional[torch.Tensor] = None,
+                     probs: Optional[torch.Tensor] = None,
+                     only_unsupervised: Optional[bool] = False):
+        loss = None
+        if labels is not None:
+            if self.fake_label_index is not None:
+                _logits = logits[:, self.real_labels]
+            loss = self.loss_fct(_logits.view(-1, self.num_labels), labels.view(-1))
+        elif only_unsupervised:
+            loss = - torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
+        return loss
 
     def freeze_backbone(self) -> None:
         for name, parameter in self.encoder.named_parameters():
