@@ -85,7 +85,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         loss = None
         if labels is not None:
             if self.fake_label_index is not None:
-                _logits = logits[:, self.real_labels]
+                _logits = logits[:, :, self.real_labels]
             else:
                 _logits = logits
             loss = self.loss_fct(_logits.view(-1, self.num_labels), labels.view(-1))
