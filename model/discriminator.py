@@ -71,8 +71,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels,
-                                 only_unsupervised=labels is None)
+        loss = self.compute_loss(logits=logits, probs=probs, labels=labels)
 
         return TokenClassifierOutput(loss=loss,
                                      logits=logits,
