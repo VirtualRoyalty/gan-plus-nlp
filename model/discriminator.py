@@ -71,7 +71,8 @@ class DiscriminatorForTokenClassification(BaseModel):
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels, )
+        loss = self.compute_loss(logits=logits, probs=probs, labels=labels,
+                                 only_unsupervised=labels is None)
 
         return TokenClassifierOutput(loss=loss,
                                      logits=logits,
@@ -81,8 +82,8 @@ class DiscriminatorForTokenClassification(BaseModel):
     def compute_loss(self,
                      logits: torch.Tensor,
                      labels: Optional[torch.Tensor] = None,
-                     probs: Optional[torch.Tensor] = None,
-                     only_unsupervised: Optional[bool] = False):
+                     probs: Optional[torch.Tensor] = None
+                     ) -> Optional[torch.float]:
         loss = None
         if labels is not None:
             if self.fake_label_index is not None:
@@ -90,7 +91,7 @@ class DiscriminatorForTokenClassification(BaseModel):
             else:
                 _logits = logits
             loss = self.loss_fct(_logits.view(-1, self.num_labels), labels.view(-1))
-        elif only_unsupervised:
+        elif self.fake_label_index is not None:
             loss = - torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
         return loss
 
