@@ -45,7 +45,7 @@ class GANTrainerTokenClassification(BaseTrainer):
                             input_mask=batch['attention_mask'],
                             labels=batch['labels'])
 
-        noise = torch.rand(batch_size, seq_len, self.config['noise_size'])
+        noise = torch.rand(batch_size, seq_len, self.config['noise_size'], device=self.device)
         gen_states = self.generator(noise)
         fake_output = self.model(external_states=gen_states,
                                  input_mask=batch['attention_mask'])
