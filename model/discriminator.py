@@ -90,7 +90,9 @@ class DiscriminatorForTokenClassification(BaseModel):
         if labels is not None:
 
             if labeled_mask is not None:
-                logits = logits[labeled_mask.bool()]
+                labeled_mask = labeled_mask.bool()
+                logits = logits[labeled_mask]
+                labels = labels[labeled_mask]
                 if logits.shape[0] == 0:
                     return 0
 
