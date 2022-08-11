@@ -55,12 +55,12 @@ class GANTrainerTokenClassification(BaseTrainer):
         feat_sim_loss = torch.mean(
             torch.pow(torch.mean(output.hidden_states, dim=0) - torch.mean(fake_output.hidden_states, dim=0), 2)
         )
-        generator_loss = output.loss + cheat_loss + feat_sim_loss
+        generator_loss = cheat_loss + feat_sim_loss
 
         # Discriminator loss estimation
         unsup_fake_loss = fake_output.loss
         unsup_real_loss = - torch.mean(torch.log(1 - output.probs[:, -1] + self.config['epsilon']))
-        discriminator_loss = unsup_fake_loss + unsup_real_loss
+        discriminator_loss = output.loss + unsup_fake_loss + unsup_real_loss
 
         self._train_logging(log_env, output=output)
 
@@ -74,7 +74,14 @@ class GANTrainerTokenClassification(BaseTrainer):
         if self.config['apply_scheduler']:
             self.scheduler.step()
             self.generator_scheduler.step()
-        return output.loss.item()
+
+        epoch_info = dict(loss=discriminator_loss.item(),
+                          generator_loss=generator_loss.item())
+        return epoch_info
+
+    def train_mode_on(self):
+        self.model.train()
+        self.model.generator()
 
     @torch.no_grad()
     def predict(self,
@@ -108,18 +115,19 @@ class GANTrainerTokenClassification(BaseTrainer):
             log_env['train/discriminator_loss'].log(output.loss.item())
         return
 
-    @staticmethod
-    def _valid_logging(log_env: Optional[Mapping] = None,
-                       info: Optional[Mapping] = None,
-                       output: Optional[TokenClassifierOutput] = None,
-                       **kwargs):
-        if log_env is not None:
-            log_env['valid/discriminator_loss'].log(info['loss'])
-            log_env['valid/discriminator_accuracy'].log(info['overall_accuracy'])
-            log_env['valid/f1'].log(info['overall_f1'])
-            log_env['valid/precision'].log(info['overall_precision'])
-            log_env['valid/recall'].log(info['overall_recall'])
-            log_env['valid/detailed_metrics'].log(info)
+    def on_train_start(self):
+        train_info = {"total_train_loss": 0, "total_generator_loss": 0}
+        return train_info
+
+    def on_train_end(self, info: Dict, verbose: Optional[bool] = True):
+        info['total_train_loss'] /= len(self.train_dataloader)
+        if verbose:
+            print(f"\tTrain loss discriminator: {info['total_train_loss']:.3f}")
+            print(f"\tTrain loss generator: {info['generator_loss']:.3f}")
+
+    def on_epoch_end(self, **kwargs):
+        kwargs['train_info']['total_train_loss'] += kwargs['epoch_info']['loss']
+        kwargs['train_info']['total_generator_loss'] += kwargs['epoch_info']['generator_loss']
 
     def _define_optimizer(self):
         # discriminator optimizer

@@ -50,6 +50,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                 input_mask: Optional[torch.Tensor] = None,
                 external_states: Optional[torch.Tensor] = None,
                 labels: Optional[torch.Tensor] = None,
+                labeled_mask: Optional[torch.Tensor] = None,
                 **kwargs
                 ) -> TokenClassifierOutput:
 
@@ -81,14 +82,23 @@ class DiscriminatorForTokenClassification(BaseModel):
     def compute_loss(self,
                      logits: torch.Tensor,
                      labels: Optional[torch.Tensor] = None,
-                     probs: Optional[torch.Tensor] = None):
+                     probs: Optional[torch.Tensor] = None,
+                     labeled_mask: Optional[torch.Tensor] = None
+                     ) -> Optional[torch.FloatTensor]:
         loss = None
         if labels is not None:
+
+            if labeled_mask is not None:
+                logits = logits[labeled_mask]
+                if logits.shape[0] == 0:
+                    return 0
+
             if self.fake_label_index is not None:
-                _logits = logits[:, :, self.real_labels]
+                logits = logits[:, :, self.real_labels]
             else:
-                _logits = logits
-            loss = self.loss_fct(_logits.view(-1, self.num_labels), labels.view(-1))
+                logits = logits
+
+            loss = self.loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
         elif self.fake_label_index is not None:
             loss = - torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
         return loss
