@@ -43,7 +43,8 @@ class GANTrainerTokenClassification(BaseTrainer):
 
         output = self.model(input_ids=batch['input_ids'],
                             input_mask=batch['attention_mask'],
-                            labels=batch['labels'])
+                            labels=batch['labels'],
+                            labeled_mask=batch['labeled_mask'])
 
         noise = torch.rand(batch_size, seq_len, self.config['noise_size'], device=self.device)
         gen_states = self.generator(noise)
@@ -96,8 +97,7 @@ class GANTrainerTokenClassification(BaseTrainer):
             batch = self._prepare_inputs(batch)
             output = model(input_ids=batch['input_ids'],
                            input_mask=batch['attention_mask'],
-                           labels=batch['labels'],
-                           labeled_mask=batch['labeled_mask'])
+                           labels=batch['labels'])
             predictions.append(output.logits.cpu().detach().numpy()[:, :, :-1])
             total_loss += output.loss
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
