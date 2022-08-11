@@ -72,7 +72,8 @@ class DiscriminatorForTokenClassification(BaseModel):
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels)
+        loss = self.compute_loss(logits=logits, probs=probs, labels=labels,
+                                 labeled_mask=labeled_mask)
 
         return TokenClassifierOutput(loss=loss,
                                      logits=logits,
@@ -89,7 +90,7 @@ class DiscriminatorForTokenClassification(BaseModel):
         if labels is not None:
 
             if labeled_mask is not None:
-                logits = logits[labeled_mask]
+                logits = logits[labeled_mask.bool()]
                 if logits.shape[0] == 0:
                     return 0
 
