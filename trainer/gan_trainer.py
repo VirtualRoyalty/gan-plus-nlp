@@ -135,6 +135,7 @@ class GANTrainerTokenClassification(BaseTrainer):
 
     def on_train_end(self, info: Dict, verbose: Optional[bool] = True):
         info['total_train_loss'] /= len(self.train_dataloader)
+        info['total_generator_loss'] /= len(self.train_dataloader)
         if verbose:
             print(f"\tTrain loss discriminator: {info['total_train_loss']:.3f}")
             print(f"\tTrain loss generator: {info['total_generator_loss']:.3f}")

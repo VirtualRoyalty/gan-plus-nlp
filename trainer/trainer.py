@@ -65,7 +65,7 @@ class TrainerTokenClassification(BaseTrainer):
                            input_mask=batch['attention_mask'],
                            labels=batch['labels'])
             predictions.append(output.logits.cpu().detach().numpy())
-            total_loss += output.loss
+            total_loss += output.loss.item()
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
         result = compute_metrics(predictions=predictions,
                                  labels=data_loader.dataset['labels'],
