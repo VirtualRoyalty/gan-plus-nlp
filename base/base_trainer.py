@@ -9,12 +9,34 @@ class BaseTrainer(ABC):
     """
 
     def train_epoch(self, log_env: Optional[Dict] = None) -> float:
-        total_loss = 0
-        self.model.train()
+        train_info = self.on_train_start()
+        self.train_mode_on()
         for step, batch in enumerate(self.train_dataloader):
-            loss = self.training_step(batch, log_env)
-            total_loss += loss
-        return total_loss / len(self.train_dataloader)
+            epoch_info = self.training_step(batch, log_env)
+            self.on_epoch_end(train_info=train_info, epoch_info=epoch_info)
+
+        self.on_train_end(train_info)
+
+        return train_info['total_loss']
+
+    def on_train_start(self):
+        train_info = {"total_train_loss": 0}
+        return train_info
+
+    def on_train_end(self, info: Dict, verbose: Optional[bool] = True):
+        info['total_train_loss'] /= len(self.train_dataloader)
+        if verbose:
+            print(f"\tTrain loss discriminator: {info['total_train_loss']:.3f}")
+
+    def on_epoch_end(self, **kwargs):
+        kwargs['train_info']['total_train_loss'] += kwargs['epoch_info']['loss']
+
+    @abstractmethod
+    def train_mode_on(self):
+        """
+        Training step logic
+        """
+        return NotImplementedError
 
     @abstractmethod
     def training_step(self):
@@ -25,7 +47,6 @@ class BaseTrainer(ABC):
 
     @torch.no_grad()
     def validation(self,
-                   train_loss: float,
                    verbose: Optional[bool] = True,
                    log_env: Optional[Dict] = None,
                    **kwargs
@@ -36,12 +57,17 @@ class BaseTrainer(ABC):
                                       label_names=self.config['label_names'])
         self._valid_logging(log_env, info=result_metrics)
 
-        if verbose:
-            print(f"\tTrain loss discriminator: {train_loss:.3f}")
-            print(f"\tTest loss discriminator: {result_metrics['loss']:.3f}")
-            print(f"\tTest accuracy discriminator: {result_metrics['overall_accuracy']:.3f}")
-            print(f"\tTest f1 discriminator: {result_metrics['overall_f1']:.3f}")
+        self.on_valid_end(result_metrics, verbose)
         return result_metrics
+
+
+    @staticmethod
+    def on_valid_end(info: Dict,
+                     verbose: Optional[bool] = True):
+        if verbose:
+            print(f"\tTest loss discriminator: {info['loss']:.3f}")
+            print(f"\tTest accuracy discriminator: {info['overall_accuracy']:.3f}")
+            print(f"\tTest f1 discriminator: {info['overall_f1']:.3f}")
 
     @abstractmethod
     def predict(self):
