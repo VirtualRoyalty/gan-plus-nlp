@@ -96,7 +96,8 @@ class GANTrainerTokenClassification(BaseTrainer):
             batch = self._prepare_inputs(batch)
             output = model(input_ids=batch['input_ids'],
                            input_mask=batch['attention_mask'],
-                           labels=batch['labels'])
+                           labels=batch['labels'],
+                           labeled_mask=batch['labeled_mask'])
             predictions.append(output.logits.cpu().detach().numpy()[:, :, :-1])
             total_loss += output.loss
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
