@@ -81,7 +81,7 @@ class GANTrainerTokenClassification(BaseTrainer):
 
     def train_mode_on(self):
         self.model.train()
-        self.model.generator()
+        self.generator.train()
 
     @torch.no_grad()
     def predict(self,
