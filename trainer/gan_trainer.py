@@ -115,6 +115,19 @@ class GANTrainerTokenClassification(BaseTrainer):
             log_env['train/discriminator_loss'].log(output.loss.item())
         return
 
+    @staticmethod
+    def _valid_logging(log_env: Optional[Mapping] = None,
+                       info: Optional[Mapping] = None,
+                       output: Optional[TokenClassifierOutput] = None,
+                       **kwargs):
+        if log_env is not None:
+            log_env['valid/discriminator_loss'].log(info['loss'])
+            log_env['valid/discriminator_accuracy'].log(info['overall_accuracy'])
+            log_env['valid/f1'].log(info['overall_f1'])
+            log_env['valid/precision'].log(info['overall_precision'])
+            log_env['valid/recall'].log(info['overall_recall'])
+            log_env['valid/detailed_metrics'].log(info)
+
     def on_train_start(self):
         train_info = {"total_train_loss": 0, "total_generator_loss": 0}
         return train_info
