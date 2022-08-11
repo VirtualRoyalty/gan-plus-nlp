@@ -43,7 +43,12 @@ class TrainerTokenClassification(BaseTrainer):
         self.optimizer.step()
         if self.config['apply_scheduler']:
             self.scheduler.step()
-        return output.loss.item()
+
+        epoch_info = dict(loss=output.loss.item())
+        return epoch_info
+
+    def train_mode_on(self):
+        self.model.train()
 
     @torch.no_grad()
     def predict(self,
