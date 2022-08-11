@@ -17,7 +17,7 @@ class BaseTrainer(ABC):
 
         self.on_train_end(train_info)
 
-        return train_info['total_loss']
+        return train_info
 
     def on_train_start(self):
         train_info = {"total_train_loss": 0}
