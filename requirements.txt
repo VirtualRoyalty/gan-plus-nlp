@@ -4,3 +4,4 @@ transformers
 datasets
 seqeval
 tqdm
+pytest

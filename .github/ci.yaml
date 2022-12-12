@@ -1,0 +1,14 @@
+name: Main CI workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test echo
+      run: echo "Hello, world!"
