@@ -24,12 +24,12 @@ class BaseTrainer(ABC):
         return train_info
 
     def on_train_end(self, info: Dict, verbose: Optional[bool] = True):
-        info['total_train_loss'] /= len(self.train_dataloader)
+        info["total_train_loss"] /= len(self.train_dataloader)
         if verbose:
             print(f"\tTrain loss discriminator: {info['total_train_loss']:.3f}")
 
     def on_epoch_end(self, **kwargs):
-        kwargs['train_info']['total_train_loss'] += kwargs['epoch_info']['loss']
+        kwargs["train_info"]["total_train_loss"] += kwargs["epoch_info"]["loss"]
 
     @abstractmethod
     def train_mode_on(self):
@@ -46,24 +46,18 @@ class BaseTrainer(ABC):
         return NotImplementedError
 
     @torch.no_grad()
-    def validation(self,
-                   verbose: Optional[bool] = True,
-                   log_env: Optional[Dict] = None,
-                   **kwargs
-                   ) -> Dict:
+    def validation(self, verbose: Optional[bool] = True, log_env: Optional[Dict] = None, **kwargs) -> Dict:
 
-        result_metrics = self.predict(model=self.model,
-                                      data_loader=self.valid_dataloader,
-                                      label_names=self.config['label_names'])
+        result_metrics = self.predict(
+            model=self.model, data_loader=self.valid_dataloader, label_names=self.config["label_names"]
+        )
         self._valid_logging(log_env, info=result_metrics)
 
         self.on_valid_end(result_metrics, verbose)
         return result_metrics
 
-
     @staticmethod
-    def on_valid_end(info: Dict,
-                     verbose: Optional[bool] = True):
+    def on_valid_end(info: Dict, verbose: Optional[bool] = True):
         if verbose:
             print(f"\tTest loss discriminator: {info['loss']:.3f}")
             print(f"\tTest accuracy discriminator: {info['overall_accuracy']:.3f}")
@@ -90,9 +84,7 @@ class BaseTrainer(ABC):
         """
         return NotImplementedError
 
-    def _prepare_inputs(self,
-                        data: Union[torch.Tensor, Any]
-                        ) -> Union[torch.Tensor, Any]:
+    def _prepare_inputs(self, data: Union[torch.Tensor, Any]) -> Union[torch.Tensor, Any]:
         if isinstance(data, Mapping):
             return type(data)({k: self._prepare_inputs(v) for k, v in data.items()})
         elif isinstance(data, (tuple, list)):

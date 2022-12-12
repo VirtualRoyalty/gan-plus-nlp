@@ -8,10 +8,7 @@ from datasets import load_metric
 metric = load_metric("seqeval")
 
 
-def compute_metrics(predictions: torch.Tensor,
-                    labels: List[List[int]],
-                    label_names: List[str]
-                    ) -> Dict:
+def compute_metrics(predictions: torch.Tensor, labels: List[List[int]], label_names: List[str]) -> Dict:
     predictions = np.argmax(predictions, axis=2)
 
     true_predictions = [
@@ -34,8 +31,7 @@ class TokenClassifierOutput(OrderedDict):
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
 
     def __repr__(self):
-        kws = [f"{key}={type(value).__name__}"
-               for key, value in self.__dict__.items()]
+        kws = [f"{key}={type(value).__name__}" for key, value in self.__dict__.items()]
         return f"{type(self).__name__}({', '.join(kws)})"
 
     def __str__(self):
