@@ -1,25 +1,27 @@
 import torch
-
-from base import *
-from typing import Optional, Tuple
-
+import torch.nn as nn
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 
+from typing import Optional, Tuple
+
+from base import BaseModel
 from model.utils import TokenClassifierOutput
 
 
 class DiscriminatorForTokenClassification(BaseModel):
     """Discriminator model class with transformer backbone"""
 
-    def __init__(self,
-                 encoder_name: str,
-                 num_labels: int = 10,
-                 dropout_rate: Optional[float] = 0.15,
-                 ce_ignore_index: Optional[int] = -100,
-                 epsilon: Optional[float] = 1e-8,
-                 fake_label_index: Optional[int] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        encoder_name: str,
+        num_labels: int = 10,
+        dropout_rate: Optional[float] = 0.15,
+        ce_ignore_index: Optional[int] = -100,
+        epsilon: Optional[float] = 1e-8,
+        fake_label_index: Optional[int] = None,
+        **kwargs
+    ):
         super(DiscriminatorForTokenClassification, self).__init__()
         self.num_labels = num_labels
         self.encoder_name = encoder_name
@@ -29,9 +31,7 @@ class DiscriminatorForTokenClassification(BaseModel):
             if hasattr(self.encoder.config, "classifier_dropout")
             else None
         )
-        self.dropout = nn.Dropout(dropout_rate
-                                  if classifier_dropout is None
-                                  else classifier_dropout)
+        self.dropout = nn.Dropout(dropout_rate if classifier_dropout is None else classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
         self.softmax = nn.Softmax(dim=-1)
         self.ignore_index = ce_ignore_index
@@ -45,18 +45,19 @@ class DiscriminatorForTokenClassification(BaseModel):
     def get_tokenizer(self) -> AutoTokenizer:
         return AutoTokenizer.from_pretrained(self.encoder_name)
 
-    def forward(self,
-                input_ids: Optional[torch.Tensor] = None,
-                input_mask: Optional[torch.Tensor] = None,
-                external_states: Optional[torch.Tensor] = None,
-                labels: Optional[torch.Tensor] = None,
-                labeled_mask: Optional[torch.Tensor] = None,
-                **kwargs
-                ) -> TokenClassifierOutput:
+    def forward(
+        self,
+        input_ids: Optional[torch.Tensor] = None,
+        input_mask: Optional[torch.Tensor] = None,
+        external_states: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
+        labeled_mask: Optional[torch.Tensor] = None,
+        **kwargs
+    ) -> TokenClassifierOutput:
 
         # simple check
         if input_ids is None and external_states is None:
-            raise AssertionError('Empty input: input_ids and external states are empty')
+            raise AssertionError("Empty input: input_ids and external states are empty")
 
         if input_ids is not None:
             outputs = self.encoder(input_ids, attention_mask=input_mask)
@@ -72,20 +73,17 @@ class DiscriminatorForTokenClassification(BaseModel):
         logits = self.classifier(sequence_output_drop)
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels,
-                                 labeled_mask=labeled_mask)
+        loss = self.compute_loss(logits=logits, probs=probs, labels=labels, labeled_mask=labeled_mask)
 
-        return TokenClassifierOutput(loss=loss,
-                                     logits=logits,
-                                     probs=probs,
-                                     hidden_states=sequence_output)
+        return TokenClassifierOutput(loss=loss, logits=logits, probs=probs, hidden_states=sequence_output)
 
-    def compute_loss(self,
-                     logits: torch.Tensor,
-                     labels: Optional[torch.Tensor] = None,
-                     probs: Optional[torch.Tensor] = None,
-                     labeled_mask: Optional[torch.Tensor] = None
-                     ) -> Optional[torch.FloatTensor]:
+    def compute_loss(
+        self,
+        logits: torch.Tensor,
+        labels: Optional[torch.Tensor] = None,
+        probs: Optional[torch.Tensor] = None,
+        labeled_mask: Optional[torch.Tensor] = None,
+    ) -> Optional[torch.FloatTensor]:
         loss = None
         if labels is not None:
 
@@ -103,7 +101,7 @@ class DiscriminatorForTokenClassification(BaseModel):
 
             loss = self.loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
         elif self.fake_label_index is not None:
-            loss = - torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
+            loss = -torch.mean(torch.log(probs[:, self.fake_label_index] + self.epsilon))
         return loss
 
     def freeze_backbone(self) -> None:
