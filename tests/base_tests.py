@@ -10,6 +10,7 @@ def test_base_model_child_forward_bad():
 
     with pytest.raises(TypeError):
         model = BaseModelChild()
+        model.forward([1, 2, 3])
 
 
 def test_base_model_child_forward_good():
