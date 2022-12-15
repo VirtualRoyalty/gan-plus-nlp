@@ -4,7 +4,7 @@ import numpy as np
 from abc import ABC, abstractmethod, abstractproperty
 
 
-class BaseModel(nn.Module):
+class BaseModel(nn.Module, ABC):
     """
     Base class for all models
     """
@@ -26,7 +26,9 @@ class BaseModel(nn.Module):
         params = sum([np.prod(p.size()) for p in model_parameters])
         return super().__str__() + "\nTrainable parameters: {}".format(params)
 
-    def predict(self, loader: torch.utils.data.DataLoader, device: torch.device, gan=True) -> tuple:
+    def predict(
+        self, loader: torch.utils.data.DataLoader, device: torch.device, gan=True
+    ) -> tuple:
         raise NotImplementedError
 
     def freeze_encoder(self) -> None:
