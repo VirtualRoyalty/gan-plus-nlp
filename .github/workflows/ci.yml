@@ -13,10 +13,9 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
-    Run-tests:
-      runs-on: ubuntu-latest
-
-     steps:
+  Run-tests:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
 
       # Check Python version
