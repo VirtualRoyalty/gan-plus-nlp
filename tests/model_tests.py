@@ -1,5 +1,6 @@
 import pytest
 import torch
+import random
 
 from base import BaseModel
 from model import SimpleGenerator, ContextualGenerator
@@ -19,7 +20,7 @@ from typing import Tuple
         (ContextualGenerator, 1, 1, 1, (1, 1)),
     ],
 )
-def test_simple_generator_forward(
+def test_generator_forward(
     generator: BaseModel,
     input_size: int,
     seq_len: int,
@@ -30,3 +31,17 @@ def test_simple_generator_forward(
     noise = torch.rand(1, seq_len, input_size)
     ouput = model.forward(noise)
     assert ouput.shape[1:] == expected
+
+
+@pytest.fixture(params=["distilbert-base-uncased", "distilroberta-base"])
+def get_discriminator(request):
+    return DiscriminatorForTokenClassification(
+        encoder_name=request.param, num_labels=random.randint(1, 50)
+    )
+
+
+def test_discriminator_freeze(get_discriminator):
+    model = get_discriminator
+    model.freeze_backbone()
+    for _, parameter in model.encoder.named_parameters():
+        assert parameter.requires_grad is False
