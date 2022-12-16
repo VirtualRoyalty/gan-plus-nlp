@@ -16,6 +16,8 @@ def simple_generator_model(input_size: int, output_size: int):
     "input_size,seq_len,output_size,expected",
     [
         (100, 1, 200, (1, 200)),
+        (10, 100, 20, (100, 20)),
+        (1, 1, 1, (1, 1)),
     ],
 )
 def test_simple_generator_forward(
