@@ -24,6 +24,6 @@ jobs:
           pip install -r requirements.txt
       - name: Run Tests
         run: |
-          pytest -q tests/base_tests.py
-          pytest -q tests/model_tests.py
+          pytest tests/base_tests.py
+          pytest tests/model_tests.py
           # pytest -q tests/trainer_tests.py
