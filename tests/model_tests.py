@@ -16,7 +16,7 @@ def get_generator_class(request):
 
 
 @pytest.mark.parametrize(
-    "generator, input_size, seq_len, output_size, expected",
+    "input_size, seq_len, output_size, expected",
     [
         (100, 1, 200, (1, 200)),
         (10, 100, 20, (100, 20)),
