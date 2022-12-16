@@ -1,4 +1,3 @@
-import sys
 import pytest
 
 from base import BaseModel, BaseTrainer
