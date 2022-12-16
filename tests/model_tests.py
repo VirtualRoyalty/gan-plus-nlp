@@ -35,6 +35,7 @@ def test_generator_forward(
 
 @pytest.fixture(params=["distilbert-base-uncased", "distilroberta-base"])
 def get_discriminator(request):
+    print(f"get_discriminator will load {request.param}...")
     return DiscriminatorForTokenClassification(
         encoder_name=request.param, num_labels=random.randint(1, 50)
     )
@@ -45,3 +46,9 @@ def test_discriminator_freeze(get_discriminator):
     model.freeze_backbone()
     for _, parameter in model.encoder.named_parameters():
         assert parameter.requires_grad is False
+
+
+def test_discriminator_bad_forward(get_discriminator):
+    model = get_discriminator
+    with pytest.raises(AssertionError):
+        model.forward()
