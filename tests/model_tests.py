@@ -5,29 +5,32 @@ import random
 from base import BaseModel
 from model import SimpleGenerator, ContextualGenerator
 from model import DiscriminatorForTokenClassification
+from model import TokenClassifierOutput
 
 from typing import Tuple
+
+
+@pytest.fixture(params=[SimpleGenerator, ContextualGenerator])
+def get_generator_class(request):
+    return request.param
 
 
 @pytest.mark.parametrize(
     "generator, input_size, seq_len, output_size, expected",
     [
-        (SimpleGenerator, 100, 1, 200, (1, 200)),
-        (SimpleGenerator, 10, 100, 20, (100, 20)),
-        (SimpleGenerator, 1, 1, 1, (1, 1)),
-        (ContextualGenerator, 100, 1, 200, (1, 200)),
-        (ContextualGenerator, 10, 100, 20, (100, 20)),
-        (ContextualGenerator, 1, 1, 1, (1, 1)),
+        (100, 1, 200, (1, 200)),
+        (10, 100, 20, (100, 20)),
+        (1, 1, 1, (1, 1)),
     ],
 )
 def test_generator_forward(
-    generator: BaseModel,
+    get_generator_class,
     input_size: int,
     seq_len: int,
     output_size: int,
     expected: Tuple[int],
 ):
-    model = generator(input_size, output_size)
+    model = get_generator_class(input_size, output_size)
     noise = torch.rand(1, seq_len, input_size)
     ouput = model.forward(noise)
     assert ouput.shape[1:] == expected
@@ -52,3 +55,21 @@ def test_discriminator_bad_forward(get_discriminator):
     model = get_discriminator
     with pytest.raises(AssertionError):
         model.forward()
+
+
+@pytest.mark.parametrize(
+    "batch_size, seq_len",
+    [
+        (1, 10),
+        (8, 32),
+    ],
+)
+def test_discriminator_good_forward_external_states(
+    get_discriminator, get_generator_class, batch_size: int, seq_len: int
+):
+    model = get_discriminator
+    generator = get_generator_class(100, model.encoder.config.hidden_size)
+    noise = torch.rand(batch_size, seq_len, 100)
+    generator_output = generator.forward(noise)
+    output = model.forward(external_states=generator_output)
+    assert isinstance(output, TokenClassifierOutput)
