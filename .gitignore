@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 .idea
+VKR/
+.DS_Store
 __pycache__/
 *.py[cod]
 *$py.class
