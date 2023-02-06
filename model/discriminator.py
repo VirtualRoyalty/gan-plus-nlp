@@ -92,7 +92,7 @@ class DiscriminatorForTokenClassification(BaseModel):
                 logits = logits[labeled_mask]
                 labels = labels[labeled_mask]
                 if logits.shape[0] == 0:
-                    return 0
+                    return torch.FloatTensor([0])
 
             if self.fake_label_index is not None:
                 logits = logits[:, :, self.real_labels]
