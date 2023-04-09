@@ -54,7 +54,7 @@ class ContextualGenerator(BaseModel):
             real_proj = self.mixed_proj_layer(real_encoded_samples)
             noise_and_real = torch.cat([noise, real_proj], dim=1)
             context_noise = self.attention(
-                query=noise, key=noise_and_real, value=noise_and_real, need_weights=False
+                query=noise_and_real, key=noise, value=noise, need_weights=False
             )[0]
         return self.out(context_noise)
 
