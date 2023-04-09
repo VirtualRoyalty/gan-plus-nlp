@@ -57,8 +57,7 @@ class GANTrainerTokenClassification(BaseTrainer):
             noise = torch.rand(batch_size, noise_len, self.config["noise_size"], device=self.device)
             hstates_len = seq_len - noise_len
             rand_indexes = torch.randperm(seq_len)[:hstates_len]
-            selected_hiden_states = output.hidden_sequence[:, rand_indexes, :]
-
+            selected_hiden_states = output.hidden_states[:, rand_indexes, :]
             gen_states = self.generator(noise, real_encoded_samples=selected_hiden_states)
         fake_output = self.model(external_states=gen_states, input_mask=batch["attention_mask"])
 
@@ -76,7 +75,7 @@ class GANTrainerTokenClassification(BaseTrainer):
         unsup_real_loss = -torch.mean(torch.log(1 - output.probs[:, -1] + self.config["epsilon"]))
         discriminator_loss = output.loss + unsup_fake_loss + unsup_real_loss
 
-        self._train_logging(log_env, output=output)
+        self._train_logging(log_env, dloss=discriminator_loss, gloss=generator_loss)
 
         self.generator_optimizer.zero_grad()
         self.optimizer.zero_grad()
@@ -121,11 +120,14 @@ class GANTrainerTokenClassification(BaseTrainer):
     def _train_logging(
         log_env: Optional[Mapping] = None,
         info: Optional[Mapping] = None,
-        output: Optional[TokenClassifierOutput] = None,
+        dloss: torch.FloatTensor = None,
+        gloss: torch.FloatTensor = None,
         **kwargs,
     ):
         if log_env is not None:
-            log_env["train/discriminator_loss"].log(output.loss.item())
+            log_env["train/discriminator_loss"].log(dloss.item())
+            log_env["train/generator_loss"].log(gloss.item())
+
         return
 
     @staticmethod
