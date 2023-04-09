@@ -48,9 +48,18 @@ class GANTrainerTokenClassification(BaseTrainer):
             labels=batch["labels"],
             labeled_mask=batch["labeled_mask"],
         )
+        if self.config["GAN_TYPE"] != "mixed":
+            noise = torch.rand(batch_size, seq_len, self.config["noise_size"], device=self.device)
+            gen_states = self.generator(noise)
+        else:
+            mixed_fake_ratio = self.config.get("mixed_fake_ratio", 0.3)
+            noise_len = int(seq_len * mixed_fake_ratio)
+            noise = torch.rand(batch_size, noise_len, self.config["noise_size"], device=self.device)
+            hstates_len = seq_len - noise_len
+            rand_indexes = torch.randperm(seq_len)[:hstates_len]
+            selected_hiden_states = output.hidden_sequence[:, rand_indexes, :]
 
-        noise = torch.rand(batch_size, seq_len, self.config["noise_size"], device=self.device)
-        gen_states = self.generator(noise)
+            gen_states = self.generator(noise, real_encoded_samples=selected_hiden_states)
         fake_output = self.model(external_states=gen_states, input_mask=batch["attention_mask"])
 
         # Generator loss estimation
