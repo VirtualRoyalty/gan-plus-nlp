@@ -41,7 +41,7 @@ def compute_clf_metrics(predictions: torch.Tensor, labels: List[int], label_name
     )
     return dict(
         overall_accuracy=overall_accuracy,
-        overall_fscore=overall_fscore,
+        overall_f1=overall_fscore,
         overall_precision=overall_precision,
         overall_recall=overall_recall,
         detailed_metrics=detailed_metrics,
