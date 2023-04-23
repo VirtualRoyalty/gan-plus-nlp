@@ -9,7 +9,7 @@ class SimpleSequenceGenerator(BaseModel):
     """Generator model class"""
 
     def __init__(self, input_size: int, output_size: int, dropout_rate: float = 0.2, **kwargs):
-        super(SimpleTokenGenerator, self).__init__()
+        super(SimpleSequenceGenerator, self).__init__()
         self.dropout_rate = dropout_rate
         layers = self.get_block(input_size, output_size)
         layers.extend(self.get_block(output_size, output_size))
