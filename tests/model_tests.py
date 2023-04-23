@@ -5,7 +5,7 @@ import random
 from base import BaseModel
 from model import SimpleGenerator, ContextualGenerator
 from model import DiscriminatorForTokenClassification
-from model import TokenClassifierOutput
+from model import ClassifierOutput
 
 from typing import Tuple
 
@@ -72,4 +72,4 @@ def test_discriminator_good_forward_external_states(
     noise = torch.rand(batch_size, seq_len, 100)
     generator_output = generator.forward(noise)
     output = model.forward(external_states=generator_output)
-    assert isinstance(output, TokenClassifierOutput)
+    assert isinstance(output, ClassifierOutput)

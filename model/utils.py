@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from collections import OrderedDict
 from typing import Optional, Tuple, List, Dict
 from datasets import load_metric
+from sklearn.metrics import accuracy, f1_score, precision_score, recall_score, classification_report
 
 metric = load_metric("seqeval")
 
@@ -23,8 +24,26 @@ def compute_metrics(predictions: torch.Tensor, labels: List[List[int]], label_na
     return results
 
 
+def compute_clf_metrics(predictions: torch.Tensor, labels: List[int], label_names: List[str]) -> Dict:
+    predictions = np.argmax(predictions, axis=1)
+    overall_accuracy = accuracy(labels, predictions)
+    overall_fscore = f1_score(labels, predictions, average="macro")
+    overall_precision = precision_score(labels, predictions, average="macro")
+    overall_recall = recall_score(labels, predictions, average="macro")
+    detailed_metrics = classification_report(
+        labels, predictions, target_names=label_names, output_dict=True
+    )
+    return dict(
+        overall_accuracy=overall_accuracy,
+        overall_fscore=overall_fscore,
+        overall_precision=overall_precision,
+        overall_recall=overall_recall,
+        detailed_metrics=detailed_metrics,
+    )
+
+
 @dataclass()
-class TokenClassifierOutput(OrderedDict):
+class ClassifierOutput(OrderedDict):
     loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     probs: torch.FloatTensor = None
