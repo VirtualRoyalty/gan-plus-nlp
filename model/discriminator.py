@@ -43,8 +43,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
         self.dropout = nn.Dropout(dropout_rate if classifier_dropout is None else classifier_dropout)
         self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
         self.softmax = nn.Softmax(dim=-1)
-        self.ignore_index = ce_ignore_index
-        self.loss_fct = CrossEntropyLoss(ignore_index=self.ignore_index)
+        self.loss_fct = CrossEntropyLoss(ignore_index=ce_ignore_index)
         self.epsilon = epsilon
         self.gan_training = gan_training
         if self.gan_training:
@@ -68,7 +67,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
 
         if input_ids is not None:
             outputs = self.encoder(input_ids, attention_mask=input_mask)
-            sequence_output = outputs[0]
+            sequence_output = outputs.last_hidden_state[:, 0]  # get CLS embedding
 
             # add generator input to hidden states
             if external_states is not None:
