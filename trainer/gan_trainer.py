@@ -1,5 +1,6 @@
 import torch
 import functools
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam, AdamW
@@ -109,7 +110,9 @@ class GANTrainerSequenceClassification(BaseTrainer):
             predictions.append(output.logits.cpu().detach().numpy()[:, :-1])
             total_loss += output.loss
         result = compute_clf_metrics(
-            predictions=predictions, labels=data_loader.dataset["labels"], label_names=label_names
+            predictions=np.vstack(predictions),
+            labels=data_loader.dataset["labels"],
+            label_names=label_names,
         )
         result["loss"] = total_loss / len(data_loader)
         return result
