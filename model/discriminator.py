@@ -102,7 +102,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
             if self.gan_training:
                 logits = logits[:, self.real_labels]
 
-            loss = self.loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+            loss = self.loss_fct(logits, labels.view(-1))
         elif self.gan_training:
             loss = -torch.mean(torch.log(probs[:, self.fake_index] + self.epsilon))
         return loss
