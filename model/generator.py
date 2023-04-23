@@ -5,11 +5,11 @@ from base import BaseModel
 from typing import Optional
 
 
-class SimpleGenerator(BaseModel):
+class SimpleSequenceGenerator(BaseModel):
     """Generator model class"""
 
     def __init__(self, input_size: int, output_size: int, dropout_rate: float = 0.2, **kwargs):
-        super(SimpleGenerator, self).__init__()
+        super(SimpleTokenGenerator, self).__init__()
         self.dropout_rate = dropout_rate
         layers = self.get_block(input_size, output_size)
         layers.extend(self.get_block(output_size, output_size))
@@ -27,7 +27,29 @@ class SimpleGenerator(BaseModel):
         ]
 
 
-class ContextualGenerator(BaseModel):
+class SimpleTokenGenerator(BaseModel):
+    """Generator model class"""
+
+    def __init__(self, input_size: int, output_size: int, dropout_rate: float = 0.2, **kwargs):
+        super(SimpleTokenGenerator, self).__init__()
+        self.dropout_rate = dropout_rate
+        layers = self.get_block(input_size, output_size)
+        layers.extend(self.get_block(output_size, output_size))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, noise: torch.Tensor):
+        return self.layers(noise)
+
+    def get_block(self, input_size: int, output_size: int):
+        return [
+            nn.Linear(input_size, output_size),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout(self.dropout_rate),
+            nn.LayerNorm(output_size),
+        ]
+
+
+class ContextualTokenGenerator(BaseModel):
     """Contextual Generator model class with Attention"""
 
     def __init__(
@@ -38,7 +60,7 @@ class ContextualGenerator(BaseModel):
         need_mixed_proj_layer: bool = False,
         **kwargs
     ):
-        super(ContextualGenerator, self).__init__()
+        super(ContextualTokenGenerator, self).__init__()
         self.dropout_rate = dropout_rate
         self.attention = nn.MultiheadAttention(
             embed_dim=input_size, num_heads=1, batch_first=True, dropout=0.15

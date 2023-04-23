@@ -8,7 +8,7 @@ from transformers.trainer_pt_utils import numpy_pad_and_concatenate
 from typing import List, Dict, Mapping, Optional
 
 from base import BaseTrainer
-from model import compute_metrics, DiscriminatorForTokenClassification, TokenClassifierOutput
+from model import compute_metrics, DiscriminatorForTokenClassification, ClassifierOutput
 
 
 class TrainerTokenClassification(BaseTrainer):
@@ -76,7 +76,7 @@ class TrainerTokenClassification(BaseTrainer):
     def _train_logging(
         log_env: Optional[Mapping] = None,
         info: Optional[Mapping] = None,
-        output: Optional[TokenClassifierOutput] = None,
+        output: Optional[ClassifierOutput] = None,
         **kwargs,
     ):
         if log_env is not None:
@@ -87,7 +87,7 @@ class TrainerTokenClassification(BaseTrainer):
     def _valid_logging(
         log_env: Optional[Mapping] = None,
         info: Optional[Mapping] = None,
-        output: Optional[TokenClassifierOutput] = None,
+        output: Optional[ClassifierOutput] = None,
         **kwargs,
     ):
         if log_env is not None:
