@@ -53,6 +53,7 @@ class GANTrainerSequenceClassification(BaseTrainer):
         output = self.model(
             input_ids=batch["input_ids"],
             input_mask=batch["attention_mask"],
+            token_type_ids=batch.get("token_type_ids", None),
             labels=batch["labels"],
             labeled_mask=batch["labeled_mask"],
         )

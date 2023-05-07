@@ -57,6 +57,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
         input_ids: Optional[torch.Tensor] = None,
         input_mask: Optional[torch.Tensor] = None,
         external_states: Optional[torch.Tensor] = None,
+        token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
@@ -66,7 +67,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
             raise AssertionError("Empty input: input_ids and external states are empty")
 
         if input_ids is not None:
-            outputs = self.encoder(input_ids, attention_mask=input_mask)
+            outputs = self.encoder(input_ids, attention_mask=input_mask, token_type_ids=token_type_ids)
             sequence_output = outputs.last_hidden_state[:, 0]  # get CLS embedding
 
             # add generator input to hidden states
