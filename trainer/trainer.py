@@ -41,7 +41,10 @@ class TrainerSequenceClassification(BaseTrainer):
     def training_step(self, batch: Mapping[str, torch.Tensor], log_env: Optional[Dict] = None):
         batch = self._prepare_inputs(batch)
         output = self.model(
-            input_ids=batch["input_ids"], input_mask=batch["attention_mask"], labels=batch["labels"]
+            input_ids=batch["input_ids"],
+            input_mask=batch["attention_mask"],
+            token_type_ids=batch.get("token_type_ids", None),
+            labels=batch["labels"],
         )
         self._train_logging(log_env, output=output)
 
