@@ -223,7 +223,7 @@ class GANTrainerMultipleChoice(GANTrainer):
             labeled_mask=batch["labeled_mask"],
         )
         noise = get_noise(
-            (batch_size, self.config["noise_size"]),
+            (batch_size * self.config["num_labels"], self.config["noise_size"]),
             dist=self.config.get("noise_type", "uniform"),
             range=self.config.get("noise_range", (-2, 2)),
             device=self.device,
@@ -278,7 +278,7 @@ class GANTrainerMultipleChoice(GANTrainer):
                 labels=batch["labels"],
             )
             predictions.append(output.logits.cpu().detach().numpy())
-            total_loss += output.loss
+            total_loss += output.loss.item()
         result = compute_clf_metrics(
             predictions=np.vstack(predictions),
             labels=data_loader.dataset["labels"],

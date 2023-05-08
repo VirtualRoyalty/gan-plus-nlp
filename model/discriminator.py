@@ -143,9 +143,6 @@ class DiscriminatorForMultipleChoice(Discriminator):
         self.gan_training = gan_training
         if self.gan_training:
             print("Training with GAN mode on!")
-            self.real_labels = torch.arange(num_labels) != (num_labels - 1)
-            self.fake_index = -1
-            print(f"Default fake label index is {self.fake_index}")
 
     def forward(
         self,
