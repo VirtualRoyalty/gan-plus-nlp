@@ -192,7 +192,10 @@ class GANTrainerSequenceClassification(GANTrainer):
         for step, batch in enumerate(data_loader):
             batch = self._prepare_inputs(batch)
             output = model(
-                input_ids=batch["input_ids"], input_mask=batch["attention_mask"], labels=batch["labels"]
+                input_ids=batch["input_ids"],
+                input_mask=batch["attention_mask"],
+                token_type_ids=batch.get("token_type_ids", None),
+                labels=batch["labels"],
             )
             predictions.append(output.logits.cpu().detach().numpy()[:, :-1])
             total_loss += output.loss
@@ -269,7 +272,10 @@ class GANTrainerMultipleChoice(GANTrainer):
         for step, batch in enumerate(data_loader):
             batch = self._prepare_inputs(batch)
             output = model(
-                input_ids=batch["input_ids"], input_mask=batch["attention_mask"], labels=batch["labels"]
+                input_ids=batch["input_ids"],
+                input_mask=batch["attention_mask"],
+                token_type_ids=batch.get("token_type_ids", None),
+                labels=batch["labels"],
             )
             predictions.append(output.logits.cpu().detach().numpy()[:, :-1])
             total_loss += output.loss
