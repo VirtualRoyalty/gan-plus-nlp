@@ -163,6 +163,9 @@ class DiscriminatorForMultipleChoice(Discriminator):
         if input_ids is None:
             sequence_output = external_states
         else:
+            input_ids = input_ids.view(-1, input_ids.size(-1))
+            input_mask = input_mask.view(-1, input_mask.size(-1))
+            token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
             outputs = self.encoder(input_ids, attention_mask=input_mask, token_type_ids=token_type_ids)
             sequence_output = outputs[1]  # pooled output
             # add generator input to hidden states

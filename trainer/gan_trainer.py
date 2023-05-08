@@ -281,12 +281,6 @@ class GANTrainerMultipleChoice(GANTrainer):
         result["loss"] = total_loss / len(data_loader)
         return result
 
-    def _prepare_inputs(self, data: Union[torch.Tensor, Any]) -> Union[torch.Tensor, Any]:
-        data = super()._prepare_inputs(data)
-        for feature_name in ["input_ids", "attention_mask", "token_type_ids"]:
-            data[feature_name] = data[feature_name].view(-1, data[feature_name].size(-1))
-        return data
-
 
 class GANTrainerTokenClassification(GANTrainer):
     """GAN trainer for token classification tasks"""
