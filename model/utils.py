@@ -66,7 +66,7 @@ class ClassifierOutput(OrderedDict):
 @dataclass()
 class NewClassifierOutput(OrderedDict):
     loss: Optional[torch.FloatTensor] = None
-    fale_loss: Optional[torch.FloatTensor] = None
+    fake_loss: Optional[torch.FloatTensor] = None
     logits: torch.FloatTensor = None
     fake_logits: torch.FloatTensor = None
     probs: torch.FloatTensor = None
