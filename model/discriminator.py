@@ -174,6 +174,7 @@ class DiscriminatorForMultipleChoice(Discriminator):
 
         sequence_output_drop = self.dropout(sequence_output)
         logits = self.classifier(sequence_output_drop)
+        fake_probs = None
         if self.gan_training:
             fake_probs = self.softmax(logits)[:, [1]]
             fake_logits = logits[:, [1]]
