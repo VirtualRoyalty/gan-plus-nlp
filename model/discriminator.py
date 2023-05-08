@@ -176,7 +176,7 @@ class DiscriminatorForMultipleChoice(Discriminator):
             fake_probs = self.softmax(logits)[:, [1]]
             fake_logits = logits[:, [1]]
             logits = logits[:, [0]]
-        if input_ids:
+        if input_ids is not None:
             logits = logits.view(-1, self.num_labels)
         probs = self.softmax(logits)
         loss = self.compute_loss(
