@@ -277,7 +277,7 @@ class GANTrainerMultipleChoice(GANTrainer):
                 token_type_ids=batch.get("token_type_ids", None),
                 labels=batch["labels"],
             )
-            predictions.append(output.logits.cpu().detach().numpy()[:, :-1])
+            predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss
         result = compute_clf_metrics(
             predictions=np.vstack(predictions),
