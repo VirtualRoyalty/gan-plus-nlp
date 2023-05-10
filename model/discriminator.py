@@ -41,14 +41,16 @@ class DiscriminatorForSequenceClassification(Discriminator):
             else None
         )
         self.dropout = nn.Dropout(dropout_rate if classifier_dropout is None else classifier_dropout)
-        self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
+        if gan_training:
+            self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels + 1)
+        else:
+            self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
         self.softmax = nn.Softmax(dim=-1)
         self.loss_fct = CrossEntropyLoss(ignore_index=ce_ignore_index)
         self.epsilon = epsilon
         self.gan_training = gan_training
         if self.gan_training:
             print("Training with GAN mode on!")
-            self.real_labels = torch.arange(num_labels) != (num_labels - 1)
             self.fake_index = -1
             print(f"Default fake label index is {self.fake_index}")
 
@@ -62,51 +64,59 @@ class DiscriminatorForSequenceClassification(Discriminator):
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> ClassifierOutput:
-        # simple check
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
-        if input_ids is not None:
+        if input_ids is None:
+            sequence_output = external_states
+        else:
             outputs = self.encoder(input_ids, attention_mask=input_mask, token_type_ids=token_type_ids)
             sequence_output = outputs.last_hidden_state[:, 0]  # get CLS embedding
-
-            # add generator input to hidden states
             if external_states is not None:
                 sequence_output = torch.cat([sequence_output, external_states], dim=0)
-        else:
-            sequence_output = external_states
 
         sequence_output_drop = self.dropout(sequence_output)
         logits = self.classifier(sequence_output_drop)
+        if self.gan_training:
+            fake_logits = logits[:, [-1]]
+            fake_probs = self.softmax(logits)[:, [-1]]
+            logits = logits[:, :-1]
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels, labeled_mask=labeled_mask)
-
-        return ClassifierOutput(loss=loss, logits=logits, probs=probs, hidden_states=sequence_output)
+        loss = self.compute_loss(
+            logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
+        )
+        return NewClassifierOutput(
+            loss=loss["real_loss"],
+            fake_loss=loss["fake_loss"],
+            logits=logits,
+            fake_logits=fake_logits,
+            probs=probs,
+            fake_probs=fake_probs,
+            hidden_states=sequence_output,
+        )
 
     def compute_loss(
         self,
         logits: torch.Tensor,
+        fake_logits: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
         probs: Optional[torch.Tensor] = None,
+        fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
-    ) -> Optional[torch.FloatTensor]:
-        loss = None
+    ) -> Dict[str, torch.FloatTensor]:
+        real_loss = torch.FloatTensor([0]).cuda()
+        fake_loss = torch.FloatTensor([0]).cuda()
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
                 logits = logits[labeled_mask]
                 labels = labels[labeled_mask]
-                if logits.shape[0] == 0:
-                    return torch.FloatTensor([0]).cuda()
-
-            if self.gan_training:
-                logits = logits[:, self.real_labels]
-
-            loss = self.loss_fct(logits, labels.view(-1))
-        elif self.gan_training:
-            loss = -torch.mean(torch.log(probs[:, self.fake_index] + self.epsilon))
-        return loss
+            if logits.shape[0] > 0:
+                real_loss = self.loss_fct(logits, labels)
+        if self.gan_training:
+            fake_loss = -torch.mean(torch.log(fake_probs + self.epsilon))
+        return {"real_loss": real_loss, "fake_loss": fake_loss}
 
 
 class DiscriminatorForMultiLabelClassification(Discriminator):
@@ -161,10 +171,8 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         else:
             outputs = self.encoder(input_ids, attention_mask=input_mask, token_type_ids=token_type_ids)
             sequence_output = outputs.last_hidden_state[:, 0]  # get CLS embedding
-            # add generator input to hidden states
             if external_states is not None:
                 sequence_output = torch.cat([sequence_output, external_states], dim=0)
-
         sequence_output_drop = self.dropout(sequence_output)
         logits = self.classifier(sequence_output_drop)
         fake_probs, fake_logits = None, None
@@ -176,7 +184,6 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         loss = self.compute_loss(
             logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
         )
-
         return NewClassifierOutput(
             loss=loss["real_loss"],
             fake_loss=loss["fake_loss"],
@@ -361,7 +368,6 @@ class DiscriminatorForTokenClassification(Discriminator):
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> ClassifierOutput:
-        # simple check
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
