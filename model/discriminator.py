@@ -204,7 +204,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
                 logits = logits[labeled_mask]
                 labels = labels[labeled_mask]
             if logits.shape[0] > 0:
-                real_loss = self.loss_fct(logits, labels)
+                real_loss = self.loss_fct(logits, labels.float())
         if self.gan_training:
             fake_loss = -torch.mean(torch.log(fake_probs + self.epsilon))
         return {"real_loss": real_loss, "fake_loss": fake_loss}
