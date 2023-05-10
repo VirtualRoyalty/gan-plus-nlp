@@ -122,7 +122,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         gan_training: bool = False,
         **kwargs,
     ):
-        super(DiscriminatorForMultipleChoice, self).__init__()
+        super(DiscriminatorForMultiLabelClassification, self).__init__()
         self.num_labels = num_labels
         self.encoder_name = encoder_name
         self.encoder = AutoModel.from_pretrained(encoder_name)
