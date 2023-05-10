@@ -3,7 +3,8 @@
 # Semi-supervised learning for NLP via `GAN`
 ---
 
-Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enhance models in terms of small bunch of labeled examples:
+Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enhance models in terms of small bunch of labeled examples.
+
 Supported tasks are following:
 
 - [x] text classification (see `DiscriminatorForSequenceClassification`)
