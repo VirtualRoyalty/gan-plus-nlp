@@ -51,7 +51,7 @@ def compute_clf_metrics(predictions: torch.Tensor, labels: List[int], label_name
 def compute_multi_label_metrics(
     predictions: torch.Tensor, labels: List[int], label_names: List[str]
 ) -> Dict:
-    predictions = predictions > 0.5
+    predictions = sigmoid(predictions) > 0.5
     overall_accuracy = hamming_score(predictions, labels)
     detailed_metrics = {}
     for i, name in enumerate(label_names):
@@ -80,6 +80,10 @@ def hamming_score(y_true, y_pred):
             tmp_a = len(set_true.intersection(set_pred)) / float(len(set_true.union(set_pred)))
         acc_list.append(tmp_a)
     return np.mean(acc_list)
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(x))
 
 
 @dataclass()
