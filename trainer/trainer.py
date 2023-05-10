@@ -83,7 +83,7 @@ class TrainerSequenceClassification(BaseTrainer):
             total_loss += output.loss.item()
         result = self.compute_metrics(
             predictions=np.vstack(predictions),
-            labels=data_loader.dataset["labels"],
+            labels=np.vstack(data_loader.dataset["labels"]),
             label_names=label_names,
         )
         result["loss"] = total_loss / len(data_loader)
