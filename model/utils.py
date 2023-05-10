@@ -48,6 +48,40 @@ def compute_clf_metrics(predictions: torch.Tensor, labels: List[int], label_name
     )
 
 
+def compute_multi_label_metrics(
+    predictions: torch.Tensor, labels: List[int], label_names: List[str]
+) -> Dict:
+    predictions = predictions > 0.5
+    overall_accuracy = hamming_score(predictions, labels)
+    detailed_metrics = {}
+    for i, name in enumerate(label_names):
+        fscore = f1_score(predictions[:, i], labels[:, i])
+        precision = precision_score(predictions[:, i], labels[:, i])
+        recall = recall_score(predictions[:, i], labels[:, i])
+        detailed_metrics[name] = dict(f1=fscore, precision=precision, recall=recall)
+    return dict(
+        overall_accuracy=overall_accuracy,
+        overall_f1=np.mean([v["f1"] for v in detailed_metrics.values()]),
+        overall_precision=np.mean([v["precision"] for v in detailed_metrics.values()]),
+        overall_recall=np.mean([v["recall"] for v in detailed_metrics.values()]),
+        detailed_metrics=detailed_metrics,
+    )
+
+
+def hamming_score(y_true, y_pred):
+    acc_list = []
+    for i in range(y_true.shape[0]):
+        set_true = set(np.where(y_true[i])[0])
+        set_pred = set(np.where(y_pred[i])[0])
+        tmp_a = None
+        if len(set_true) == 0 and len(set_pred) == 0:
+            tmp_a = 1
+        else:
+            tmp_a = len(set_true.intersection(set_pred)) / float(len(set_true.union(set_pred)))
+        acc_list.append(tmp_a)
+    return np.mean(acc_list)
+
+
 @dataclass()
 class ClassifierOutput(OrderedDict):
     loss: Optional[torch.FloatTensor] = None

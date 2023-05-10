@@ -12,6 +12,7 @@ from base import BaseTrainer
 from model import (
     compute_metrics,
     compute_clf_metrics,
+    compute_multi_label_metrics,
     DiscriminatorForSequenceClassification,
     DiscriminatorForTokenClassification,
     ClassifierOutput,
@@ -37,6 +38,9 @@ class TrainerSequenceClassification(BaseTrainer):
         self._define_optimizer()
         self._define_scheduler()
         self.model.to(self.device)
+        self.compute_metrics = (
+            compute_multi_label_metrics if config.get("multi-label") else compute_clf_metrics
+        )
 
     def training_step(self, batch: Mapping[str, torch.Tensor], log_env: Optional[Dict] = None):
         batch = self._prepare_inputs(batch)
@@ -77,7 +81,7 @@ class TrainerSequenceClassification(BaseTrainer):
             )
             predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss.item()
-        result = compute_clf_metrics(
+        result = self.compute_metrics(
             predictions=np.vstack(predictions),
             labels=data_loader.dataset["labels"],
             label_names=label_names,
