@@ -15,7 +15,9 @@ from sklearn.metrics import (
 metric = load_metric("seqeval")
 
 
-def compute_metrics(predictions: torch.Tensor, labels: List[List[int]], label_names: List[str]) -> Dict:
+def compute_ner_metrics(
+    predictions: torch.Tensor, labels: List[List[int]], label_names: List[str]
+) -> Dict:
     predictions = np.argmax(predictions, axis=2)
 
     true_predictions = [

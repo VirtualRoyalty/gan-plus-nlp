@@ -10,7 +10,7 @@ from typing import List, Dict, Mapping, Optional
 
 from base import BaseTrainer
 from model import (
-    compute_metrics,
+    compute_ner_metrics,
     compute_clf_metrics,
     compute_multi_label_metrics,
     DiscriminatorForSequenceClassification,
@@ -194,7 +194,7 @@ class TrainerTokenClassification(BaseTrainer):
             predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss.item()
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
-        result = compute_metrics(
+        result = compute_ner_metrics(
             predictions=predictions, labels=data_loader.dataset["labels"], label_names=label_names
         )
         result["loss"] = total_loss / len(data_loader)

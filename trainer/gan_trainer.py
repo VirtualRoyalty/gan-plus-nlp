@@ -11,8 +11,9 @@ from typing import List, Dict, Mapping, Optional, Tuple, Literal, Any, Union
 
 from base import BaseTrainer
 from model import (
-    compute_metrics,
+    compute_ner_metrics,
     compute_clf_metrics,
+    compute_multi_label_metrics,
     Discriminator,
     DiscriminatorForSequenceClassification,
     DiscriminatorForTokenClassification,
@@ -44,6 +45,11 @@ class GANTrainer(BaseTrainer):
         self._define_scheduler()
         self.model.to(self.device)
         self.generator.to(self.device)
+        self.compute_metrics = (
+            compute_multi_label_metrics(self.config("multi-label-trh", 0.5))
+            if config.get("multi-label", False)
+            else compute_clf_metrics
+        )
 
     def train_mode_on(self):
         self.model.train()
@@ -199,9 +205,9 @@ class GANTrainerSequenceClassification(GANTrainer):
             )
             predictions.append(output.logits.cpu().detach().numpy()[:, :-1])
             total_loss += output.loss
-        result = compute_clf_metrics(
+        result = self.compute_metrics(
             predictions=np.vstack(predictions),
-            labels=data_loader.dataset["labels"],
+            labels=np.vstack(data_loader.dataset["labels"]),
             label_names=label_names,
         )
         result["loss"] = total_loss / len(data_loader)
@@ -223,7 +229,7 @@ class GANTrainerMultipleChoice(GANTrainer):
             labeled_mask=batch["labeled_mask"],
         )
         noise = get_noise(
-            (batch_size*self.config.get('gen_multiplier', 1), self.config["noise_size"]),
+            (batch_size * self.config.get("gen_multiplier", 1), self.config["noise_size"]),
             dist=self.config.get("noise_type", "uniform"),
             range=self.config.get("noise_range", (-2, 2)),
             device=self.device,
@@ -370,7 +376,7 @@ class GANTrainerTokenClassification(GANTrainer):
             predictions.append(output.logits.cpu().detach().numpy()[:, :, :-1])
             total_loss += output.loss
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
-        result = compute_metrics(
+        result = compute_ner_metrics(
             predictions=predictions, labels=data_loader.dataset["labels"], label_names=label_names
         )
         result["loss"] = total_loss / len(data_loader)
