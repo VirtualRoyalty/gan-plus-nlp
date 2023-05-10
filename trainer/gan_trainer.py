@@ -46,7 +46,7 @@ class GANTrainer(BaseTrainer):
         self.model.to(self.device)
         self.generator.to(self.device)
         self.compute_metrics = (
-            compute_multi_label_metrics(self.config("multi-label-trh", 0.5))
+            compute_multi_label_metrics(config.get("multi-label-trh", 0.5))
             if config.get("multi-label", False)
             else compute_clf_metrics
         )
