@@ -39,7 +39,9 @@ class TrainerSequenceClassification(BaseTrainer):
         self._define_scheduler()
         self.model.to(self.device)
         self.compute_metrics = (
-            compute_multi_label_metrics if config.get("multi-label") else compute_clf_metrics
+            compute_multi_label_metrics(self.config["multi-label-trh"])
+            if config.get("multi-label")
+            else compute_clf_metrics
         )
 
     def training_step(self, batch: Mapping[str, torch.Tensor], log_env: Optional[Dict] = None):
