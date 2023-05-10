@@ -136,7 +136,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
             self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels + 1)
         else:
             self.classifier = nn.Linear(self.encoder.config.hidden_size, num_labels)
-        self.softmax = nn.Sigmoid()
+        self.sigmoid = nn.Sigmoid()
         self.loss_fct = nn.BCEWithLogitsLoss()
         self.epsilon = epsilon
         self.gan_training = gan_training
