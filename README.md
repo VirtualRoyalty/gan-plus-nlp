@@ -1,6 +1,6 @@
 ![tests](https://github.com/VirtualRoyalty/gan-token-classification/actions/workflows/ci.yml/badge.svg)
 
-# Semi-supervised learning for NLP via `GAN`
+# 🦍 Semi-supervised learning for NLP via `GAN`
 ---
 
 Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enhance models in terms of small bunch of labeled examples.
