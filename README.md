@@ -40,6 +40,9 @@ Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enh
 └── requirements.txt
 ```
 
+This work based on [GAN-BERT: Generative Adversarial Learning for
+Robust Text Classification with a Bunch of Labeled Examples](https://aclanthology.org/2020.acl-main.191.pdf), (Croce et al, 2020)
+
 ---
 
 ```BibTex
