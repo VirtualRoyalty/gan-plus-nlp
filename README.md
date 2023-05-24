@@ -47,6 +47,6 @@ Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enh
   title   = "Semi-supervised learning for natural language processing via GAN.",
   author  = "Alperovich, Vadim",
   year    = "2023",
-  url     = "https://github.com/VirtualRoyalty/gan-token-classification",
+  url     = "https://github.com/VirtualRoyalty/gan-plus-nlp",
 }
 ```
