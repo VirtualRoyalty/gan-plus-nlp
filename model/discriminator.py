@@ -17,7 +17,7 @@ class Discriminator(BaseModel):
         for name, parameter in self.encoder.named_parameters():
             parameter.requires_grad = False
 
-    def safe_encoder(self, token_type_ids, *args, **kwargs):
+    def safe_encoder(self, token_type_ids=None, *args, **kwargs):
         if "distil" in self.encoder_name:
             return self.encoder(*args, **kwargs)
         return self.encoder(token_type_ids=token_type_ids, *args, **kwargs)
@@ -385,10 +385,10 @@ class DiscriminatorForTokenClassification(Discriminator):
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
-        if input_ids is not None:
+        if input_ids is None:
             sequence_output = external_states
         else:
-            outputs = self.encoder(input_ids=input_ids, attention_mask=input_mask)
+            outputs = self.safe_encoder(input_ids=input_ids, attention_mask=input_mask)
             sequence_output = outputs[0]
             if external_states is not None:
                 sequence_output = torch.cat([sequence_output, external_states], dim=0)
@@ -402,7 +402,9 @@ class DiscriminatorForTokenClassification(Discriminator):
             logits = logits[:, :, :-1]
         probs = self.softmax(logits)
 
-        loss = self.compute_loss(logits=logits, probs=probs, labels=labels, labeled_mask=labeled_mask)
+        loss = self.compute_loss(
+            logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
+        )
 
         return ClassifierOutput(
             loss=loss["real_loss"],
