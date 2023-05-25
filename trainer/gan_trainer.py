@@ -307,6 +307,7 @@ class GANTrainerTokenClassification(GANTrainer):
             input_mask=batch["attention_mask"],
             labels=batch["labels"],
             labeled_mask=batch["labeled_mask"],
+            token_type_ids=batch.get("token_type_ids", None),
         )
         if self.config["GAN_TYPE"] != "mixed":
             noise = get_noise(
@@ -332,7 +333,7 @@ class GANTrainerTokenClassification(GANTrainer):
         fake_output = self.model(external_states=gen_states, input_mask=batch["attention_mask"])
 
         # Generator loss estimation
-        cheat_loss = -1 * torch.mean(torch.log(1 - fake_output.probs[:, -1] + self.config["epsilon"]))
+        cheat_loss = -1 * torch.mean(torch.log(1 - fake_output.fake_probs + self.config["epsilon"]))
         feat_sim_loss = torch.mean(
             torch.pow(
                 torch.mean(output.hidden_states, dim=0) - torch.mean(fake_output.hidden_states, dim=0), 2
@@ -341,8 +342,8 @@ class GANTrainerTokenClassification(GANTrainer):
         generator_loss = cheat_loss + feat_sim_loss
 
         # Discriminator loss estimation
-        unsup_fake_loss = fake_output.loss
-        unsup_real_loss = -torch.mean(torch.log(1 - output.probs[:, -1] + self.config["epsilon"]))
+        unsup_fake_loss = fake_output.fake_loss
+        unsup_real_loss = -torch.mean(torch.log(1 - output.fake_probs + self.config["epsilon"]))
         discriminator_loss = output.loss + unsup_fake_loss + unsup_real_loss
 
         self._train_logging(log_env, dloss=discriminator_loss, gloss=generator_loss)
@@ -371,9 +372,12 @@ class GANTrainerTokenClassification(GANTrainer):
         for step, batch in enumerate(data_loader):
             batch = self._prepare_inputs(batch)
             output = model(
-                input_ids=batch["input_ids"], input_mask=batch["attention_mask"], labels=batch["labels"]
+                input_ids=batch["input_ids"],
+                input_mask=batch["attention_mask"],
+                labels=batch["labels"],
+                token_type_ids=batch.get("token_type_ids", None),
             )
-            predictions.append(output.logits.cpu().detach().numpy()[:, :, :-1])
+            predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
         result = compute_ner_metrics(
