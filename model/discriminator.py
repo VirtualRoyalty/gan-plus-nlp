@@ -68,7 +68,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
         labels: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
-    ) -> NewClassifierOutput:
+    ) -> ClassifierOutput:
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
@@ -94,7 +94,7 @@ class DiscriminatorForSequenceClassification(Discriminator):
         loss = self.compute_loss(
             logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
         )
-        return NewClassifierOutput(
+        return ClassifierOutput(
             loss=loss["real_loss"],
             fake_loss=loss["fake_loss"],
             logits=logits,
@@ -170,7 +170,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         labels: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
-    ) -> NewClassifierOutput:
+    ) -> ClassifierOutput:
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
@@ -194,7 +194,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         loss = self.compute_loss(
             logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
         )
-        return NewClassifierOutput(
+        return ClassifierOutput(
             loss=loss["real_loss"],
             fake_loss=loss["fake_loss"],
             logits=logits,
@@ -271,7 +271,7 @@ class DiscriminatorForMultipleChoice(Discriminator):
         labels: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
-    ) -> NewClassifierOutput:
+    ) -> ClassifierOutput:
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
@@ -303,7 +303,7 @@ class DiscriminatorForMultipleChoice(Discriminator):
             logits=logits, probs=probs, fake_probs=fake_probs, labels=labels, labeled_mask=labeled_mask
         )
 
-        return NewClassifierOutput(
+        return ClassifierOutput(
             loss=loss["real_loss"],
             fake_loss=loss["fake_loss"],
             logits=logits,
@@ -381,7 +381,7 @@ class DiscriminatorForTokenClassification(Discriminator):
         labels: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
         **kwargs,
-    ) -> NewClassifierOutput:
+    ) -> ClassifierOutput:
         if input_ids is None and external_states is None:
             raise AssertionError("Empty input: input_ids and external states are empty")
 
@@ -404,7 +404,7 @@ class DiscriminatorForTokenClassification(Discriminator):
 
         loss = self.compute_loss(logits=logits, probs=probs, labels=labels, labeled_mask=labeled_mask)
 
-        return NewClassifierOutput(
+        return ClassifierOutput(
             loss=loss["real_loss"],
             fake_loss=loss["fake_loss"],
             logits=logits,
