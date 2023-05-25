@@ -33,6 +33,7 @@ class GANTrainer(BaseTrainer):
         valid_dataloader: torch.utils.data.DataLoader,
         ce_ignore_index: Optional[int] = -100,
         device=None,
+        save_path="../weights/best_model.pth",
     ):
         self.config = config
         self.model = discriminator
@@ -50,6 +51,8 @@ class GANTrainer(BaseTrainer):
             if config.get("multi-label", False)
             else compute_clf_metrics
         )
+        self.best_valid_score = 0
+        self.model_path = save_path
 
     def train_mode_on(self):
         self.model.train()
@@ -69,13 +72,17 @@ class GANTrainer(BaseTrainer):
 
         return
 
-    @staticmethod
     def _valid_logging(
+        self,
         log_env: Optional[Mapping] = None,
         info: Optional[Mapping] = None,
         output: Optional[ClassifierOutput] = None,
         **kwargs,
     ):
+        if info["overall_f1"] >= self.best_valid_score:
+            self.best_valid_score = info["overall_f1"]
+            torch.save(self.model.state_dict(), self.model_path)
+            print("Best model saved!")
         if log_env is not None:
             log_env["valid/discriminator_loss"].log(info["loss"])
             log_env["valid/discriminator_accuracy"].log(info["overall_accuracy"])

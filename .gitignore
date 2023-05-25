@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+drive-*
+*.ipynb
 .idea
 VKR/
 .DS_Store
