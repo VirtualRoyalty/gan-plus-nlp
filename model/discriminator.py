@@ -177,7 +177,7 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         if input_ids is None:
             sequence_output = external_states
         else:
-            outputs = self.encoder(
+            outputs = self.safe_encoder(
                 input_ids=input_ids, attention_mask=input_mask, token_type_ids=token_type_ids
             )
             sequence_output = outputs.last_hidden_state[:, 0]  # get CLS embedding
@@ -281,7 +281,7 @@ class DiscriminatorForMultipleChoice(Discriminator):
             input_ids = input_ids.view(-1, input_ids.size(-1))
             input_mask = input_mask.view(-1, input_mask.size(-1))
             token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
-            outputs = self.encoder(
+            outputs = self.safe_encoder(
                 input_ids=input_ids, attention_mask=input_mask, token_type_ids=token_type_ids
             )
             sequence_output = outputs[1]  # pooled output
