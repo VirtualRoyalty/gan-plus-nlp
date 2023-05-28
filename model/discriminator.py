@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModel, AutoTokenizer, AutoConfig
+from transformers.modeling_utils import SequenceSummary
 
 from typing import Optional, Tuple, Dict
 
@@ -244,6 +245,10 @@ class DiscriminatorForMultipleChoice(Discriminator):
         self.num_labels = num_labels
         self.encoder_name = encoder_name
         self.encoder = AutoModel.from_pretrained(encoder_name)
+        self.has_seq_summary = False
+        if "electra" in self.encoder_name.lower():
+            self.sequence_summary = SequenceSummary(self.encoder.config)
+            self.has_seq_summary = True
         classifier_dropout = (
             self.encoder.config.classifier_dropout
             if hasattr(self.encoder.config, "classifier_dropout")
@@ -280,11 +285,19 @@ class DiscriminatorForMultipleChoice(Discriminator):
         else:
             input_ids = input_ids.view(-1, input_ids.size(-1))
             input_mask = input_mask.view(-1, input_mask.size(-1))
-            token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
+            if token_type_ids is not None:
+                token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
             outputs = self.safe_encoder(
                 input_ids=input_ids, attention_mask=input_mask, token_type_ids=token_type_ids
             )
-            sequence_output = outputs[1]  # pooled output
+            if not self.has_seq_summary:
+                if token_type_ids is not None:
+                    sequence_output = outputs[1]  # pooled output
+                else:
+                    sequence_output = outputs[0][:, 0]  # (bs * num_choices, dim)
+            else:
+                sequence_output = outputs[0]
+                sequence_output = self.sequence_summary(sequence_output)
             # add generator input to hidden states
             if external_states is not None:
                 sequence_output = torch.cat([sequence_output, external_states], dim=0)
