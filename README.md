@@ -5,6 +5,50 @@
 
 Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enhance models in terms of small bunch of labeled examples.
 
+### Example usage
+
+see deailed in [examples](https://github.com/VirtualRoyalty/gan-plus-nlp/blob/main/examples/sequence-classification.ipynb)
+
+```python
+
+import model
+from trainer import gan_trainer as gan_trainer_module
+
+...
+
+config["encoder_name"] = "distilbert-base-uncased"
+
+discriminator = model.DiscriminatorForSequenceClassification(**config)
+generator = model.SimpleSequenceGenerator(
+    input_size=config["noise_size"],
+    output_size=discriminator.encoder.config.hidden_size,
+)
+
+gan_trainer = gan_trainer_module.GANTrainerSequenceClassification(
+    config=config,
+    discriminator=discriminator,
+    generator=generator,
+    train_dataloader=loaders["train"],
+    valid_dataloader=loaders["valid"],
+    device=device,
+    save_path=config["save_path"],
+)
+
+for epoch_i in range(config["num_train_epochs"]):
+    print(
+        f"======== Epoch {epoch_i + 1} / {config['num_train_epochs']} ========"
+    )
+    train_info = gan_trainer.train_epoch(log_env=None)
+    result = gan_trainer.validation(log_env=None)
+
+...
+
+predict_info = gan_trainer.predict(
+    discriminator, loaders["test"], label_names=config["label_names"]
+)
+predict_info["overall_f1"]
+```
+
 ### Supported tasks are following:
 
 -  ✅ text classification (see `DiscriminatorForSequenceClassification`)
