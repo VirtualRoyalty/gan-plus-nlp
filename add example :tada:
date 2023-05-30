@@ -19,6 +19,7 @@ from trainer import gan_trainer as gan_trainer_module
 config["encoder_name"] = "distilbert-base-uncased"
 
 discriminator = model.DiscriminatorForSequenceClassification(**config)
+
 generator = model.SimpleSequenceGenerator(
     input_size=config["noise_size"],
     output_size=discriminator.encoder.config.hidden_size,
