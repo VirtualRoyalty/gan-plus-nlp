@@ -46,7 +46,7 @@ for epoch_i in range(config["num_train_epochs"]):
 predict_info = gan_trainer.predict(
     discriminator, loaders["test"], label_names=config["label_names"]
 )
-predict_info["overall_f1"]
+print(predict_info["overall_f1"])
 ```
 
 ### Supported tasks are following:
