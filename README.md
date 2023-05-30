@@ -7,7 +7,7 @@ Semi-supervised learning for NLP tasks via GAN. Such approach can be used to enh
 
 ### Example usage
 
-see deailed in [examples](https://github.com/VirtualRoyalty/gan-plus-nlp/blob/main/examples/sequence-classification.ipynb)
+see detailed in [examples](https://github.com/VirtualRoyalty/gan-plus-nlp/blob/main/examples/sequence-classification.ipynb)
 
 ```python
 
