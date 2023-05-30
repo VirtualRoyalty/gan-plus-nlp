@@ -197,7 +197,11 @@ class GANTrainerSequenceClassification(GANTrainer):
 
     @torch.no_grad()
     def predict(
-        self, model: nn.Module, data_loader: torch.utils.data.DataLoader, label_names: List[str]
+        self,
+        model: nn.Module,
+        data_loader: torch.utils.data.DataLoader,
+        label_names: List[str],
+        label_col: str = "labels",
     ) -> Dict:
         total_loss = 0
         predictions = []
@@ -208,13 +212,13 @@ class GANTrainerSequenceClassification(GANTrainer):
                 input_ids=batch["input_ids"],
                 input_mask=batch["attention_mask"],
                 token_type_ids=batch.get("token_type_ids", None),
-                labels=batch["labels"],
+                labels=batch[label_col],
             )
             predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss
         result = self.compute_metrics(
             predictions=np.vstack(predictions),
-            labels=np.vstack(data_loader.dataset["labels"]),
+            labels=np.vstack(data_loader.dataset[label_col]),
             label_names=label_names,
         )
         result["loss"] = total_loss / len(data_loader)
@@ -277,7 +281,11 @@ class GANTrainerMultipleChoice(GANTrainer):
 
     @torch.no_grad()
     def predict(
-        self, model: nn.Module, data_loader: torch.utils.data.DataLoader, label_names: List[str]
+        self,
+        model: nn.Module,
+        data_loader: torch.utils.data.DataLoader,
+        label_names: List[str],
+        label_col: str = "labels",
     ) -> Dict:
         total_loss = 0
         predictions = []
@@ -288,13 +296,13 @@ class GANTrainerMultipleChoice(GANTrainer):
                 input_ids=batch["input_ids"],
                 input_mask=batch["attention_mask"],
                 token_type_ids=batch.get("token_type_ids", None),
-                labels=batch["labels"],
+                labels=batch[label_col],
             )
             predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss.item()
         result = compute_clf_metrics(
             predictions=np.vstack(predictions),
-            labels=data_loader.dataset["labels"],
+            labels=data_loader.dataset[label_col],
             label_names=label_names,
         )
         result["loss"] = total_loss / len(data_loader)
@@ -371,7 +379,11 @@ class GANTrainerTokenClassification(GANTrainer):
 
     @torch.no_grad()
     def predict(
-        self, model: nn.Module, data_loader: torch.utils.data.DataLoader, label_names: List[str]
+        self,
+        model: nn.Module,
+        data_loader: torch.utils.data.DataLoader,
+        label_names: List[str],
+        label_col: str = "labels",
     ) -> Dict:
         total_loss = 0
         predictions = []
@@ -381,14 +393,14 @@ class GANTrainerTokenClassification(GANTrainer):
             output = model(
                 input_ids=batch["input_ids"],
                 input_mask=batch["attention_mask"],
-                labels=batch["labels"],
+                labels=batch[label_col],
                 token_type_ids=batch.get("token_type_ids", None),
             )
             predictions.append(output.logits.cpu().detach().numpy())
             total_loss += output.loss
         predictions = functools.reduce(numpy_pad_and_concatenate, predictions)
         result = compute_ner_metrics(
-            predictions=predictions, labels=data_loader.dataset["labels"], label_names=label_names
+            predictions=predictions, labels=data_loader.dataset[label_col], label_names=label_names
         )
         result["loss"] = total_loss / len(data_loader)
         return result
