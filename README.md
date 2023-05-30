@@ -62,25 +62,25 @@ print(predict_info["overall_f1"])
 ### Repo structure:
 ```
 .
-├── base/
+├── base
 │   ├── __init__.py
 │   ├── base_model.py
 │   └── base_trainer.py
-├── model/
+├── model
 │   ├── __init__.py
 │   ├── discriminator.py
 │   ├── generator.py
 │   └── utils.py
-├── trainer/
+├── trainer
 │   ├── __init__.py
 │   ├── gan_trainer.py
 │   └── trainer.py
-├── tests/
+├── tests
 │   ├── __init__.py
 │   ├── base_tests.py
 │   ├── model_tests.py
 │   └── trainer_tests.py
-├── examples/
+├── examples
 ├── LICENSE
 ├── README.md
 └── requirements.txt
