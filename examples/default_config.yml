@@ -7,27 +7,6 @@ epsilon: 1.0e-08
 fake_label_index: -1
 frozen_backbone: false
 gan_training: true
-label_names:
-- comp.sys.mac.hardware
-- comp.graphics
-- sci.space
-- talk.politics.guns
-- sci.med
-- comp.sys.ibm.pc.hardware
-- comp.os.ms-windows.misc
-- rec.motorcycles
-- misc.forsale
-- alt.atheism
-- rec.autos
-- sci.electronics
-- comp.windows.x
-- rec.sport.hockey
-- rec.sport.baseball
-- talk.politics.mideast
-- sci.crypt
-- soc.religion.christian
-- talk.politics.misc
-- talk.religion.misc
 lr_discriminator: 5.0e-05
 lr_generator: 5.0e-05
 max_seq_length: 200
