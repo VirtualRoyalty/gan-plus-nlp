@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from base import BaseModel
 from typing import Optional
+from model.utils import CustomAttention
 
 
 class SimpleSequenceGenerator(BaseModel):
@@ -62,8 +63,9 @@ class ContextualTokenGenerator(BaseModel):
     ):
         super(ContextualTokenGenerator, self).__init__()
         self.dropout_rate = dropout_rate
-        self.attention = nn.MultiheadAttention(
-            embed_dim=input_size, num_heads=1, batch_first=True, dropout=0.15
+        self.attention = CustomAttention(
+            in_features=input_size,
+            embed_dim=64,
         )
         self.out = nn.Sequential(*self.get_block(input_size, output_size))
         if need_mixed_proj_layer:
@@ -71,13 +73,13 @@ class ContextualTokenGenerator(BaseModel):
 
     def forward(self, noise: torch.Tensor, real_encoded_samples: Optional[torch.Tensor] = None):
         if real_encoded_samples is None:
-            context_noise = self.attention(query=noise, key=noise, value=noise, need_weights=False)[0]
+            context_noise = self.attention(query=noise, key=noise, value=noise, need_weights=False)
         else:
             real_proj = self.mixed_proj_layer(real_encoded_samples)
             noise_and_real = torch.cat([noise, real_proj], dim=1)
             context_noise = self.attention(
-                query=noise_and_real, key=noise, value=noise, need_weights=False
-            )[0]
+                query=noise_and_real, key=noise_and_real, value=noise_and_real, need_weights=False
+            )
         return self.out(context_noise)
 
     def get_block(self, input_size: int, output_size: int):

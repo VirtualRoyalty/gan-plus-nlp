@@ -1,4 +1,6 @@
+import math
 import torch
+import torch.nn as nn
 import numpy as np
 from dataclasses import dataclass
 from collections import OrderedDict
@@ -13,6 +15,23 @@ from sklearn.metrics import (
 )
 
 metric = load_metric("seqeval")
+
+
+class CustomAttention(nn.Module):
+    def __init__(self, in_features: int, embed_dim: int = 128, activation=nn.LeakyReLU(0.2)):
+        super(CustomAttention, self).__init__()
+        self.activation = activation
+        self.softmax = nn.Softmax(dim=-1)
+        self.linear_q = nn.Linear(in_features, embed_dim)
+        self.linear_k = nn.Linear(in_features, embed_dim)
+
+    def forward(self, query, key, value, **kwargs):
+        Q = self.linear_q(query)
+        K = self.linear_k(query)
+        dk = Q.size()[-1]
+        scores = Q.bmm(K.transpose(-2, -1)) / math.sqrt(dk)
+        attention = self.softmax(scores)
+        return self.activation(attention.bmm(value))
 
 
 def compute_ner_metrics(
