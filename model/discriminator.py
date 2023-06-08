@@ -114,8 +114,8 @@ class DiscriminatorForSequenceClassification(Discriminator):
         fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.FloatTensor]:
-        real_loss = torch.FloatTensor([0]).cuda()
-        fake_loss = torch.FloatTensor([0]).cuda()
+        real_loss = torch.FloatTensor([0]).to(self.encoder.device)
+        fake_loss = torch.FloatTensor([0]).to(self.encoder.device)
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
@@ -214,8 +214,8 @@ class DiscriminatorForMultiLabelClassification(Discriminator):
         fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.FloatTensor]:
-        real_loss = torch.FloatTensor([0]).cuda()
-        fake_loss = torch.FloatTensor([0]).cuda()
+        real_loss = torch.FloatTensor([0]).to(self.encoder.device)
+        fake_loss = torch.FloatTensor([0]).to(self.encoder.device)
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
@@ -335,8 +335,8 @@ class DiscriminatorForMultipleChoice(Discriminator):
         fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.FloatTensor]:
-        real_loss = torch.FloatTensor([0]).cuda()
-        fake_loss = torch.FloatTensor([0]).cuda()
+        real_loss = torch.FloatTensor([0]).to(self.encoder.device)
+        fake_loss = torch.FloatTensor([0]).to(self.encoder.device)
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
@@ -439,8 +439,8 @@ class DiscriminatorForTokenClassification(Discriminator):
         fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
     ) -> Optional[torch.FloatTensor]:
-        real_loss = torch.FloatTensor([0]).cuda()
-        fake_loss = torch.FloatTensor([0]).cuda()
+        real_loss = torch.FloatTensor([0]).to(self.encoder.device)
+        fake_loss = torch.FloatTensor([0]).to(self.encoder.device)
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
@@ -551,8 +551,8 @@ class DiscriminatorForContextTokenClassification(Discriminator):
         fake_probs: Optional[torch.Tensor] = None,
         labeled_mask: Optional[torch.Tensor] = None,
     ) -> Optional[torch.FloatTensor]:
-        real_loss = torch.FloatTensor([0]).cuda()
-        fake_loss = torch.FloatTensor([0]).cuda()
+        real_loss = torch.FloatTensor([0]).to(self.encoder.device)
+        fake_loss = torch.FloatTensor([0]).to(self.encoder.device)
         if labels is not None:
             if labeled_mask is not None:
                 labeled_mask = labeled_mask.bool()
