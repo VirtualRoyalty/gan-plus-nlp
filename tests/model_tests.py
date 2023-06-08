@@ -3,14 +3,14 @@ import torch
 import random
 
 from base import BaseModel
-from model import SimpleGenerator, ContextualGenerator
+from model import SimpleTokenGenerator, ContextualTokenGenerator
 from model import DiscriminatorForTokenClassification
 from model import ClassifierOutput
 
 from typing import Tuple
 
 
-@pytest.fixture(params=[SimpleGenerator, ContextualGenerator])
+@pytest.fixture(params=[SimpleTokenGenerator, ContextualTokenGenerator])
 def get_generator_class(request):
     return request.param
 
@@ -36,7 +36,7 @@ def test_generator_forward(
     assert ouput.shape[1:] == expected
 
 
-@pytest.fixture(params=["distilbert-base-uncased", "distilroberta-base"])
+@pytest.fixture(params=["distilbert-base-uncased", "google/electra-small-discriminator"])
 def get_discriminator(request):
     print(f"get_discriminator will load {request.param}...")
     return DiscriminatorForTokenClassification(
